@@ -37,6 +37,7 @@ m1 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio1.xlsx"))
 m2 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio2.xlsx"))
 #julio
 
+
 # 2. Limpar datos --------------------------------------------------------------
 ## 2.1. Pegar dos las dos bases de junio ---------------------------------------
 ### 2.1.2 Verificar los nombres de las bases------------------------------------

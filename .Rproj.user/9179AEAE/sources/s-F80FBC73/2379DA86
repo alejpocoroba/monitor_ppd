@@ -3,9 +3,9 @@
     "path": "~/GitHub/monitor_ppd/01_codigos/01_limpieza_inicial.R",
     "project_path": "01_codigos/01_limpieza_inicial.R",
     "type": "r_source",
-    "hash": "2228151598",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1656196483134.0,
     "source_on_save": false,
     "relative_order": 1,
@@ -13,15 +13,16 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "47,27",
-        "scrollLine": "32"
+        "cursorPosition": "162,8",
+        "scrollLine": "130",
+        "docOutlineVisible": "1"
     },
     "folds": "",
-    "lastKnownWriteTime": 1656201786,
+    "lastKnownWriteTime": 1658446341,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1656201786286,
+    "last_content_update": 1658446342876,
     "read_only": false,
     "read_only_alternatives": []
 }
