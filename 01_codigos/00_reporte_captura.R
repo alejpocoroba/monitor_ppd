@@ -119,7 +119,11 @@ df_microdatos <- df_pegada %>%
          "politica_de_seguridad" = "x5_1_politica_de_seguridad",
          "politica_de_drogas" = "x5_2_politica_de_drogas") %>% 
   # Mes de captura
-  mutate(mes = lubridate::month(fecha_de_publicacion))
+  mutate(mes = lubridate::month(fecha_de_publicacion)) %>% 
+  # Nombres de entidades
+  mutate(
+    id_entidad = str_extract_all(estado, "[:digit:]")
+  )
   
 
 df_responsable <- df_microdatos %>% 
@@ -171,6 +175,8 @@ ggplot(df_responsable_mes,
        aes(x = mes, y = notas, fill = responsable)) +
   geom_col()
 
+
+## Total de notas capturadas por persona ---------------------------------------
 ggplot(
   # Datos
   df_responsable,
@@ -190,8 +196,8 @@ ggplot(
   ) +
   # Etiquetas
   labs( 
-    title = "Total de observaciones capturadas por persona", 
-    subtitle = "", 
+    title = "Total de observaciones capturadas para el Monitor PPD", 
+    subtitle = "Por persona responsable", 
     x = "\nNúmero de observaciones capturadas", 
     y = "Persona responsable\n", 
     caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
@@ -202,3 +208,151 @@ ggplot(
   theme_bw()
 
 ggsave(file = paste_fig("00_captura_persona.png"))
+
+## Total de notas capturadas por persona y por mes -----------------------------
+ggplot(
+  # Datos
+  df_responsable_mes,
+  # Coordenadas
+  aes(x = notas, y = reorder(responsable, notas))) +
+  facet_wrap(~mes) +
+  # Geoms
+  geom_col() +
+  geom_text(
+    aes(label = paste0(notas, " (", porcentaje_text, ")")), size = 3,
+    nudge_x = if_else(df_responsable_mes$responsable %in% c("AP", "LA"), -140, 120), 
+    color = if_else(df_responsable_mes$responsable %in% c("AP", "LA"), "white", "black"), 
+  ) +
+  # Annotations
+  # annotate(
+  #   "text", x = 1000, y = 1, 
+  #   label = paste0("Total de observaciones capturadas: ", scales::comma(sum(df_responsable_mes$notas)))
+  # ) +
+  # Etiquetas
+  labs( 
+    title = "Total de observaciones capturadas para el Monitor PPD", 
+    subtitle = "Por mes y por persona responsable", 
+    x = "\nNúmero de observaciones capturadas", 
+    y = "Persona responsable\n", 
+    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+  ) +
+  # Escalas 
+  scale_x_continuous(label = scales::comma_format()) +
+  # Tema 
+  theme_bw()
+
+ggsave(file = paste_fig("01_captura_persona_mes.png"))
+
+
+## Total de notas capturadas por persona por día--------------------------------
+df_data <- df_microdatos %>% 
+  group_by(fecha_de_publicacion, estado, responsable) %>% 
+  summarise(
+    total = n()
+  ) %>% 
+  filter(!is.na(estado))
+
+ggplot(
+  # Datos
+  df_data %>% filter(fecha_de_publicacion>= as.Date("2022-06-01")), 
+  # Coordenadas 
+       aes(x = fecha_de_publicacion, y = total, fill = responsable)) +
+  facet_wrap(~estado, ncol = 8) +
+  # Geoms
+  geom_col() +
+  # Etiquetas
+  labs(
+    title = "Total de observaciones capturadas para el Monitor PPD", 
+    subtitle = "Por estado, fecha de publicación y persona responsable", 
+    fill = "Persona\nresponsable\n", 
+    x = "Fecha de publicación", 
+    y = "\nNúmero de observaciones capturadas", 
+    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    axis.text.x = element_text(angle = 30))
+
+
+ggsave(file = paste_fig("02_captura_estado_fecha_persona.png"), 
+       width = 10, height = 6)
+
+
+
+## Total de notas capturadas por persona por día (en junio) --------------------
+
+df_data <- df_microdatos %>% 
+  filter(mes == 6) %>% 
+  group_by(fecha_de_publicacion, estado, responsable) %>% 
+  summarise(
+    total = n()
+  ) %>% 
+  filter(!is.na(estado))
+
+
+
+ggplot(
+  # Datos
+  df_data, 
+  # Coordenadas 
+  aes(x = fecha_de_publicacion, y = total, fill = responsable)) +
+  facet_wrap(~estado, ncol = 8) +
+  # Geoms
+  geom_col() +
+  # Etiquetas
+  labs(
+    title = "Total de observaciones capturadas para el Monitor PPD en junio", 
+    subtitle = "Por estado, fecha de publicación y persona responsable", 
+    fill = "Persona\nresponsable\n", 
+    x = "Fecha de publicación", 
+    y = "\nNúmero de observaciones capturadas", 
+    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    axis.text.x = element_text(angle = 30))
+
+
+ggsave(file = paste_fig("02b_captura_estado_fecha_persona_junio.png"), 
+       width = 10, height = 6)
+
+
+## Total de notas capturadas por persona por día (en julio) --------------------
+
+df_data <- df_microdatos %>% 
+  filter(mes == 7) %>% 
+  group_by(fecha_de_publicacion, estado, responsable) %>% 
+  summarise(
+    total = n()
+  ) %>% 
+  filter(!is.na(estado))
+
+
+
+ggplot(
+  # Datos
+  df_data, 
+  # Coordenadas 
+  aes(x = fecha_de_publicacion, y = total, fill = responsable)) +
+  facet_wrap(~estado, ncol = 8) +
+  # Geoms
+  geom_col() +
+  # Etiquetas
+  labs(
+    title = "Total de observaciones capturadas para el Monitor PPD en julio", 
+    subtitle = "Por estado, fecha de publicación y persona responsable", 
+    fill = "Persona\nresponsable\n", 
+    x = "Fecha de publicación", 
+    y = "\nNúmero de observaciones capturadas", 
+    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    axis.text.x = element_text(angle = 30))
+
+
+ggsave(file = paste_fig("02c_captura_estado_fecha_persona_julio.png"), 
+       width = 10, height = 6)
