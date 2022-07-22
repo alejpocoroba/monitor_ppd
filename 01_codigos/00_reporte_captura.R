@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------#
 # Proyecto:                   Monitor PPD
-# Objetivo:                   Procesamiento de la información
+# Objetivo:                   Reporte de desempeño: captura de notas
 #
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
@@ -32,36 +32,32 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
 # 1. Cargar datos --------------------------------------------------------------
 
-#junio
+# Junio
 m1 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio1.xlsx"))
 m2 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio2.xlsx"))
 
+# julio 
+m3 <- read_xlsx(paste_inp("Monitor_julio21.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
-## 2.1. Pegar dos las dos bases de junio ---------------------------------------
-### 2.1.2 Verificar los nombres de las bases------------------------------------
 
-colnames(m1)
-colnames(m2)
+m4 <- m1 %>% 
+  rename("1.2.2) Enlace" = "1.2.1) Enlace",
+         "1.2.5) Nota complementaria/duplicada" = "1.2.5) Nota duplicada") %>% 
+  mutate(
+    `1.2.6) Enlaces de notas complementaria/duplicada` = 
+      paste(`1.2.6) Enlace de nota duplicada`, `1.2.6.1) Enlaces de notas duplicadas`, 
+            sep = ";")) %>% 
+  select(-c(`1.2.6) Enlace de nota duplicada`, 
+            `1.2.6.1) Enlaces de notas duplicadas`)) 
 
-nom_ms <- colnames(m1) %in% colnames(m2)
-nom_ms2 <- colnames(m2) %in% colnames(m1)
+# Se pegan todas las bases
+df_pegada <- m2 %>% 
+  bind_rows(m3) %>% 
+  bind_rows(m4) 
 
-sum(nom_ms2)
-table(nom_ms)
-
-
-colnames(m1)[!nom_ms]
-colnames(m2)[!nom_ms2]
-
-### 2.1.2 Renombrar variables---------------------------------------
-
-### 2.1.3 Pegar bases---------------------------------------
-df_1 <- m2 %>% 
-  bind_rows(m3)
-
-## 2.2. Quitar valores repetidos ---------------------------------------
-df_2 <- df_1 %>% 
+# Limpiar nombres de microdatos
+df_microdatos <- df_pegada %>% 
   janitor::clean_names() %>% 
   rename("datos_generales"      = "x1_datos_generales",
          "responsable"          = "x1_1_responsable",
@@ -122,39 +118,87 @@ df_2 <- df_1 %>%
          "politica_de_seguridad_y_de_drogas" = "x5_politica_de_seguridad_y_de_drogas",
          "politica_de_seguridad" = "x5_1_politica_de_seguridad",
          "politica_de_drogas" = "x5_2_politica_de_drogas") %>% 
-  select(-c(`tipo_de_elemento`, `ruta_de_acceso`)) %>% 
-# construcción de identificadores 
-  mutate(n_hechos = 
-           (numero_de_homicidios_total > 0) + 
-           (numero_de_heridos_as_total > 0) + 
-           (numero_de_detenidos_as_total > 0) +
-           (narcomensaje) +
-           (privacion_de_la_libertad) +
-           !is.na(otras_actividades_ilicitas)) %>% 
-# 2.1 Casos repetidos 
-  distinct(fecha_de_publicacion, fecha_de_los_hechos, municipio, n_hechos, 
-           autoridad_militar, autoridad_civil, 
-           nombre_del_grupo_criminal_gc, cuerpo_s_localizado_s, 
-           numero_de_homicidios_total, numero_de_detenidos_as_total, ataque_armado,
-           politica_de_seguridad, lugar,
-           .keep_all = TRUE) 
-
-# Controles de calidad 
-# v_unicos <- unique(df_2$id)
-# 
-# df_eliminados <- df_1 %>% 
-#   filter(!Id %in% v_unicos)
-# 
-# table(df_eliminados$Responsable)
-
-## 2.3. Quitar variables política de seguridad y drogas-------------------------
-df_3 <- df_2 %>% 
-  filter(!politica_de_seguridad == TRUE,
-         !politica_de_drogas == TRUE) %>% 
-  select(-c(politica_de_seguridad, politica_de_drogas))
-
-# 3. Guardar base---------------------------------------------------------------
-df_monitor <- df_3
-
-save(df_monitor, file = paste_out("df_monitor.Rdata"))
+  # Mes de captura
+  mutate(mes = lubridate::month(fecha_de_publicacion))
   
+
+df_responsable <- df_microdatos %>% 
+  group_by(responsable) %>% 
+  summarise(notas = n()) %>% 
+  ungroup() %>% 
+  mutate(
+    porcentaje = round(notas/sum(notas), 4), 
+    porcentaje_text = scales::percent(porcentaje, accuracy = 0.01))
+
+df_responsable_mes <- df_microdatos %>% 
+  group_by(mes, responsable) %>% 
+  summarise(notas = n()) %>% 
+  ungroup() %>% 
+  group_by(mes) %>% 
+  mutate(
+    porcentaje = round(notas/sum(notas), 4), 
+    porcentaje_text = scales::percent(porcentaje, accuracy = 0.01))
+
+
+df_entidad<- df_microdatos %>% 
+  group_by(estado) %>% 
+  summarise(notas = n()) %>% 
+  ungroup() %>% 
+  mutate(
+    porcentaje = round(notas/sum(notas), 4), 
+    porcentaje_text = scales::percent(porcentaje, accuracy = 0.01))
+
+
+# 3. Estadísticas de captura ---------------------------------------------------
+
+# Total de notas capturadas
+paste0("Total de notas capturadas: ", dim(df_microdatos)[1])
+
+# Notas capturadas por mes
+table(df_microdatos$mes)
+
+# Notas capturadas por persona
+table(df_microdatos$responsable)
+
+# Notas capturadas por mes, por persona
+
+ggplot(df_responsable_mes, 
+       aes(x = mes, y = porcentaje, fill = responsable)) +
+  geom_col()
+
+
+ggplot(df_responsable_mes, 
+       aes(x = mes, y = notas, fill = responsable)) +
+  geom_col()
+
+ggplot(
+  # Datos
+  df_responsable,
+  # Coordenadas
+       aes(x = notas, y = reorder(responsable, notas))) +
+  # Geoms
+  geom_col() +
+  geom_text(
+    aes(label = paste0(notas, " (", porcentaje_text, ")")), 
+    nudge_x = if_else(df_responsable$responsable == "AP", -130, 110), 
+    color = if_else(df_responsable$responsable == "AP", "white", "black"), 
+    ) +
+  # Annotations
+  annotate(
+    "text", x = 1000, y = 1, 
+    label = paste0("Total de observaciones capturadas: ", scales::comma(sum(df_responsable$notas)))
+  ) +
+  # Etiquetas
+  labs( 
+    title = "Total de observaciones capturadas por persona", 
+    subtitle = "", 
+    x = "\nNúmero de observaciones capturadas", 
+    y = "Persona responsable\n", 
+    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+    ) +
+  # Escalas 
+  scale_x_continuous(label = scales::comma_format()) +
+  # Tema 
+  theme_bw()
+
+ggsave(file = paste_fig("00_captura_persona.png"))
