@@ -36,6 +36,12 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 m1 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio1.xlsx"))
 m2 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio2.xlsx"))
 
+# julio
+m3 <- read_xlsx(paste_inp("Monitor_PPD_julio.xlsx"))
+
+# Agosto (hasta el 15/08)
+m4 <- read_xlsx(paste_inp("Monitor_PPD_agosto1.xlsx"))
+
 
 # 2. Limpar datos --------------------------------------------------------------
 ## 2.1. Pegar dos las dos bases de junio ---------------------------------------
@@ -58,7 +64,8 @@ colnames(m2)[!nom_ms2]
 
 ### 2.1.3 Pegar bases---------------------------------------
 df_1 <- m2 %>% 
-  bind_rows(m3)
+  bind_rows(m3) %>% 
+  bind_rows(m4)
 
 ## 2.2. Quitar valores repetidos ---------------------------------------
 df_2 <- df_1 %>% 
@@ -142,18 +149,41 @@ df_2 <- df_1 %>%
 # Controles de calidad 
 # v_unicos <- unique(df_2$id)
 # 
-# df_eliminados <- df_1 %>% 
-#   filter(!Id %in% v_unicos)
+# df_eliminados <- df_1 %>%
+#    filter(!Id %in% v_unicos)
 # 
 # table(df_eliminados$Responsable)
 
-## 2.3. Quitar variables política de seguridad y drogas-------------------------
+## 2.3. Quitar variables política de seguridad y drogas e internacional---------
 df_3 <- df_2 %>% 
   filter(!politica_de_seguridad == TRUE,
-         !politica_de_drogas == TRUE) %>% 
-  select(-c(politica_de_seguridad, politica_de_drogas))
+         !politica_de_drogas == TRUE,
+         presencia_internacional == FALSE) %>% 
+  select(-c(politica_de_seguridad, politica_de_drogas, presencia_internacional))
 
-# 3. Guardar base---------------------------------------------------------------
+
+# 3. Estructura de la nueva base------------------------------------------------
+
+# ¿Cuáles son las dimensiones de la base?
+dim(df_3)
+
+# ¿Cuántas observaciones hay por entidad?
+table(df_3$estado)
+
+# ¿Cuáles entidadades están registradas?
+unique(df_3$estado)
+
+# ¿Cuántas entidadades están registradas?
+length(unique(df_3$estado))
+
+# ¿En cuántas observaciones no se registró la entidad?
+sum(is.na(df_3$estado))
+
+# Ver observaciones defectusas 
+df_na <- df_3 %>% 
+  filter(is.na(estado))
+
+# 4. Guardar base------------------- -------------------------------------------
 df_monitor <- df_3
 
 save(df_monitor, file = paste_out("df_monitor.Rdata"))

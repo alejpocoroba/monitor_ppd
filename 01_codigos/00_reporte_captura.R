@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       21 de julio de 2022
+# Última actualización:       29 de julio de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -32,16 +32,20 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
 # 1. Cargar datos --------------------------------------------------------------
 
-# Junio
+#junio
 m1 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio1.xlsx"))
 m2 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio2.xlsx"))
 
-# julio 
-m3 <- read_xlsx(paste_inp("Monitor_julio21.xlsx"))
+# julio
+m3 <- read_xlsx(paste_inp("Monitor_PPD_julio.xlsx"))
+
+# Agosto (hasta el 15/08)
+m4 <- read_xlsx(paste_inp("Monitor_PPD_agosto1.xlsx"))
+
 
 # 2. Limpar datos --------------------------------------------------------------
 
-m4 <- m1 %>% 
+df_j <- m1 %>% 
   rename("1.2.2) Enlace" = "1.2.1) Enlace",
          "1.2.5) Nota complementaria/duplicada" = "1.2.5) Nota duplicada") %>% 
   mutate(
@@ -52,7 +56,8 @@ m4 <- m1 %>%
             `1.2.6.1) Enlaces de notas duplicadas`)) 
 
 # Se pegan todas las bases
-df_pegada <- m2 %>% 
+df_pegada <- df_j %>% 
+  bind_rows(m2) %>% 
   bind_rows(m3) %>% 
   bind_rows(m4) 
 
@@ -176,7 +181,7 @@ ggplot(df_responsable_mes,
   geom_col()
 
 
-## Total de notas capturadas por persona ---------------------------------------
+## 3.1 Total de notas capturadas por persona ---------------------------------------
 ggplot(
   # Datos
   df_responsable,
@@ -209,7 +214,7 @@ ggplot(
 
 ggsave(file = paste_fig("00_captura_persona.png"))
 
-## Total de notas capturadas por persona y por mes -----------------------------
+## 3.2 Total de notas capturadas por persona y por mes -----------------------------
 ggplot(
   # Datos
   df_responsable_mes,
@@ -244,17 +249,18 @@ ggplot(
 ggsave(file = paste_fig("01_captura_persona_mes.png"))
 
 
-## Total de notas capturadas por persona por día--------------------------------
+## 3.3 Total de notas capturadas por persona por día--------------------------------
 df_data <- df_microdatos %>% 
   group_by(fecha_de_publicacion, estado, responsable) %>% 
   summarise(
     total = n()
   ) %>% 
-  filter(!is.na(estado))
+  filter(!is.na(estado)) %>% 
+  drop_na()
 
 ggplot(
   # Datos
-  df_data %>% filter(fecha_de_publicacion>= as.Date("2022-06-01")), 
+  df_data %>% filter(fecha_de_publicacion>= as.Date("2022-06-01"), fecha_de_publicacion<= as.Date("2022-08-16")), 
   # Coordenadas 
        aes(x = fecha_de_publicacion, y = total, fill = responsable)) +
   facet_wrap(~estado, ncol = 8) +
@@ -267,30 +273,32 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+    caption = paste0("Corte del Monitor-PPD al 15/08/22 ")
   ) +
+  # Escalas
+  scale_fill_brewer(palette="Set2") +
+  # Temas 
   theme_bw() +
   theme(
     legend.position = "top", 
     axis.text.x = element_text(angle = 30))
+  
 
 
-ggsave(file = paste_fig("02_captura_estado_fecha_persona.png"), 
+ggsave(file = paste_fig("03_captura_estado_fecha_persona.png"), 
        width = 10, height = 6)
 
 
 
-## Total de notas capturadas por persona por día (en junio) --------------------
-
+## 3.4 Total de notas capturadas por persona por día por mes --------------------
 df_data <- df_microdatos %>% 
   filter(mes == 6) %>% 
   group_by(fecha_de_publicacion, estado, responsable) %>% 
   summarise(
     total = n()
   ) %>% 
-  filter(!is.na(estado))
-
-
+  filter(!is.na(estado)) %>% 
+  drop_na()
 
 ggplot(
   # Datos
@@ -302,57 +310,65 @@ ggplot(
   geom_col() +
   # Etiquetas
   labs(
-    title = "Total de observaciones capturadas para el Monitor PPD en junio", 
+    title = "Total de observaciones capturadas para el Monitor", 
     subtitle = "Por estado, fecha de publicación y persona responsable", 
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
+    caption = paste0("Corte del Monitor-PPD al 15/08/22")
   ) +
+  # Escalas
+  scale_fill_brewer(palette="Set2") +
+  # Tema
   theme_bw() +
   theme(
     legend.position = "top", 
     axis.text.x = element_text(angle = 30))
-
 
 ggsave(file = paste_fig("02b_captura_estado_fecha_persona_junio.png"), 
        width = 10, height = 6)
 
 
-## Total de notas capturadas por persona por día (en julio) --------------------
+# ---- Bucle
 
-df_data <- df_microdatos %>% 
-  filter(mes == 7) %>% 
-  group_by(fecha_de_publicacion, estado, responsable) %>% 
-  summarise(
-    total = n()
-  ) %>% 
-  filter(!is.na(estado))
+for(i in 6:8) {
+  df_data <- df_microdatos %>% 
+    filter(mes == i) %>% 
+    group_by(fecha_de_publicacion, estado, responsable) %>% 
+    summarise(
+      total = n()
+    ) %>% 
+    filter(!is.na(estado)) %>% 
+    drop_na()
+  
+  ggplot(
+    # Datos
+    df_data %>% filter(fecha_de_publicacion>= as.Date("2022-06-01"), fecha_de_publicacion<= as.Date("2022-08-16")), 
+    # Coordenadas 
+    aes(x = fecha_de_publicacion, y = total, fill = responsable)) +
+    facet_wrap(~estado, ncol = 8) +
+    # Geoms
+    geom_col() +
+    # Etiquetas
+    labs(
+      title = paste0("Total de observaciones capturadas para el Monitor en el mes ", i), 
+      subtitle = "Por estado, fecha de publicación y persona responsable", 
+      fill = "Persona\nresponsable\n", 
+      x = "Fecha de publicación", 
+      y = "\nNúmero de observaciones capturadas", 
+      caption = paste0("Corte del Monitor-PPD al 15/08/22")
+    ) +
+    # Escalas
+    scale_fill_brewer(palette="Set2") +
+    # Tema
+    theme_bw() +
+    theme(
+      legend.position = "top", 
+      axis.text.x = element_text(angle = 30))
+
+  ggsave(file = paste_fig(paste0("02b_captura_estado_fecha_persona_", i, ".png")), 
+         width = 10, height = 6)
+  
+  }
 
 
-
-ggplot(
-  # Datos
-  df_data, 
-  # Coordenadas 
-  aes(x = fecha_de_publicacion, y = total, fill = responsable)) +
-  facet_wrap(~estado, ncol = 8) +
-  # Geoms
-  geom_col() +
-  # Etiquetas
-  labs(
-    title = "Total de observaciones capturadas para el Monitor PPD en julio", 
-    subtitle = "Por estado, fecha de publicación y persona responsable", 
-    fill = "Persona\nresponsable\n", 
-    x = "Fecha de publicación", 
-    y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Corte del Monitor-PPD a las 19:15 del día ", max(df_microdatos$fecha_de_publicacion))
-  ) +
-  theme_bw() +
-  theme(
-    legend.position = "top", 
-    axis.text.x = element_text(angle = 30))
-
-
-ggsave(file = paste_fig("02c_captura_estado_fecha_persona_julio.png"), 
-       width = 10, height = 6)
