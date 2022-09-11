@@ -1,0 +1,6 @@
+"0","# Funciones con direcciones de las carpetas"
+"0","paste_out <- function(x){paste0(""../03_datos_limpios/"", x)}"
+"0","paste_fig <- function(x){paste0(""../04_figuras/""      , x)}"
+"0",""
+"0","load(paste_out(""df_monitor_amplio.Rdata""))"
+"0",""

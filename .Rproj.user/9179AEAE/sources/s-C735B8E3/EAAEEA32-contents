@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       10 de agosto de 2022
+# Última actualización:       08 de agosto de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -197,6 +197,5 @@ save(df_monitor, file = paste_out("df_monitor.Rdata"))
 df_monitor_amplio <- df_2
 
 openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
-save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
                       
 
