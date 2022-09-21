@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       10 de agosto de 2022
+# Última actualización:       13 de agosto de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -39,40 +39,57 @@ m2 <- read_xlsx(paste_inp("Monitor_junio/Monitor_PPD_junio2.xlsx"))
 # julio
 m3 <- read_xlsx(paste_inp("Monitor_PPD_julio.xlsx"))
 
-# Agosto (hasta el 15/08)
+# Agosto 
 m4 <- read_xlsx(paste_inp("Monitor_PPD_agosto1.xlsx"))
 m5 <- read_xlsx(paste_inp("Monitor_PPD_agosto2.xlsx"))
+m6 <- read_xlsx(paste_inp("Monitor_PPD_agosto3.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
-## 2.1. Pegar dos las dos bases de junio ---------------------------------------
-### 2.1.2 Verificar los nombres de las bases------------------------------------
 
-colnames(m1)
+df_j <- m1 %>% 
+  rename("1.2.2) Enlace" = "1.2.1) Enlace",
+         "1.2.5) Nota complementaria/duplicada" = "1.2.5) Nota duplicada") %>% 
+  mutate(
+    `1.2.6) Enlaces de notas complementaria/duplicada` = 
+      paste(`1.2.6) Enlace de nota duplicada`, `1.2.6.1) Enlaces de notas duplicadas`, 
+            sep = ";")) %>% 
+  select(-c(`1.2.6) Enlace de nota duplicada`, 
+            `1.2.6.1) Enlaces de notas duplicadas`)) 
+
+# Bases que tienen valores vacíos ocultos de origen
+m5 <- m5 %>%
+  filter(!is.na(Id)) 
+
+m6 <- m6 %>%
+  filter(!is.na(Id)) 
+
+## 2.1. Pegar bases ------------------------------------------------------------
+### 2.1.2 Verificar los nombres de las bases------------------------------------
+### Base m1 tiene nombres de variables distintas al resto de las bases 
+
+colnames(df_j)
 colnames(m2)
 
-nom_ms <- colnames(m1) %in% colnames(m2)
-nom_ms2 <- colnames(m2) %in% colnames(m1)
+nom_ms <- colnames(df_j) %in% colnames(m2)
+nom_ms2 <- colnames(m2) %in% colnames(df_j)
 
 sum(nom_ms2)
 table(nom_ms)
 
 
-colnames(m1)[!nom_ms]
+colnames(df_j)[!nom_ms]
 colnames(m2)[!nom_ms2]
 
-# Base m5 tiene valores ocultos de origen
-m5 <- m5 %>%
-  filter(!is.na(Id)) 
+### 2.1.2 Pegar todas las bases-------------------------------------------------
+df_1 <- df_j %>% # base junio 1 
+  bind_rows(m2) %>% # base junio 2
+  bind_rows(m3) %>% # base julio
+  bind_rows(m4) %>% # base agosto 1
+  bind_rows(m5) %>% # base agosto 2
+  bind_rows(m6)     # base agosto 3
+   
 
-### 2.1.2 Renombrar variables---------------------------------------
-
-### 2.1.3 Pegar bases---------------------------------------
-df_1 <- m2 %>% 
-  bind_rows(m3) %>% 
-  bind_rows(m4) %>%
-  bind_rows(m5)
-
-## 2.2. Quitar valores repetidos ---------------------------------------
+## 2.2. Homologación de variables-----------------------------------------------
 df_2 <- df_1 %>% 
   janitor::clean_names() %>% 
   rename("datos_generales"      = "x1_datos_generales",
@@ -135,6 +152,8 @@ df_2 <- df_1 %>%
          "politica_de_seguridad" = "x5_1_politica_de_seguridad",
          "politica_de_drogas" = "x5_2_politica_de_drogas") %>% 
   select(-c(`tipo_de_elemento`, `ruta_de_acceso`)) %>% 
+# 2.1 Base modificada-----------------------------------------------------------
+# Id nuevos, eliminación de repetidos y política de seguridad y drogas
 # construcción de identificadores 
   mutate(n_hechos = 
            (numero_de_homicidios_total > 0) + 
@@ -143,7 +162,7 @@ df_2 <- df_1 %>%
            (narcomensaje) +
            (privacion_de_la_libertad) +
            !is.na(otras_actividades_ilicitas)) %>% 
-# 2.1 Casos repetidos 
+# Casos repetidos 
   distinct(fecha_de_publicacion, fecha_de_los_hechos, municipio, n_hechos, 
            autoridad_militar, autoridad_civil, 
            nombre_del_grupo_criminal_gc, cuerpo_s_localizado_s, 
@@ -159,7 +178,7 @@ df_2 <- df_1 %>%
 # 
 # table(df_eliminados$Responsable)
 
-## 2.3. Quitar variables política de seguridad y drogas e internacional---------
+# Quitar variables política de seguridad y drogas e internacional
 df_3 <- df_2 %>% 
   filter(!politica_de_seguridad == TRUE,
          !politica_de_drogas == TRUE,
@@ -167,7 +186,13 @@ df_3 <- df_2 %>%
   select(-c(politica_de_seguridad, politica_de_drogas, presencia_internacional))
 
 
-# 3. Estructura de la nueva base------------------------------------------------
+# 3. Guardar base sin modificar (amplia, hasta línea 138)-----------------------
+df_monitor_amplio <- df_2
+
+openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
+save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
+
+# 3.1 Estructura de la base modificada-----------------------------------------
 
 # ¿Cuáles son las dimensiones de la base?
 dim(df_3)
@@ -188,15 +213,11 @@ sum(is.na(df_3$estado))
 df_na <- df_3 %>% 
   filter(is.na(estado))
 
-# 4. Guardar base------------------- -------------------------------------------
+# 3.2 Guardar base modificada------- -------------------------------------------
 df_monitor <- df_3
 
 save(df_monitor, file = paste_out("df_monitor.Rdata"))
 
-### Guardar base amplia (hasta línea 138)
-df_monitor_amplio <- df_2
 
-openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
-save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
                       
 

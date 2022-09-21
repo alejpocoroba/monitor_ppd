@@ -40,15 +40,18 @@ v_caption <- "Fuente: Elaboracón propia con datos del Monitor-PPD 2022"
 ```
 # Monitor de noticias del Programa de Política de Drogas 
 
-El monitor del noticias del Programa de Política de Drogas (Monitor-PPD) es un esfuerzo por documentar las noticias relacionadas con la violencia criminal en México 2022
+El monitor del noticias del Programa de Política de Drogas (Monitor-PPD) es un esfuerzo por documentar los hechos descritos en distintas fuentes abiertas sobre las actividades delictivas, en especifico, la violencia criminal en los 32 estados de México. Las fuentes abiertas consultadas son medios regionales e internacionales, blogs, redes sociales y comunidados de las autoridades. 
 
+El total de obseraciones del 01-06 al `r format(Sys.time(), '%d-%m-%Y')` es de `r comma(length(df_monitor_amplio$id))`
 
-El total de obseraciones al `r format(Sys.time(), '%d-%m-%Y')` es de `r comma(length(df_monitor_amplio$id))`
+Las fuentes que se han consultado son `r unique(df_monitor_amplio$nombre_de_la_fuente, na.rm =T)`
 
-# Homicidios
+# Muertes
+## Número de personas asesinadas
 
 El total de homicidios identificados entre junio y agosto fue de `r comma(sum(df_monitor_amplio$numero_de_homicidios_total, na.rm =T))`, de los cuales `r comma(sum(df_monitor_amplio$numero_de_homicidios_hombre, na.rm =T))` son hombres y `r comma(sum(df_monitor_amplio$numero_de_homicidios_mujer, na.rm =T))` son mujeres. 
 
+Las personas asesinadas pertenecian/trabajaban como  `r unique(df_monitor_amplio$pertenece_a, na.rm =T)`
 
 ```{r homicidios}
 
@@ -79,39 +82,69 @@ ggplot(df_data2,
   theme_bw() + 
   theme(legend.position = "none")
 
-
 ```
 
+## Cuerpos en espacios públicos
 
-## Muertes hombres vs mujeres
-
+El número total de cuerpos y/o restos humanos localizados en espacios públicos fue de 1,479.
 
 ```{r graph1, echo = F, out.width="100%", fig.align = 'center', cache=FALSE}
 # knitr::include_graphics(paste_fig("estados_homi.png"))
 ```
 
 
-## Cuerpos localizados
+# Personas heridas
+El número de personas heridas es de `r comma(sum(df_monitor_amplio$numero_de_heridos_as_total, na.rm =T))`. De este número `r comma(sum(df_monitor_amplio$numero_de_heridos_hombres, na.rm =T))` son hombres y mujeres son `r comma(sum(df_monitor_amplio$numero_de_heridas_mujeres, na.rm =T))`
 
-# Heridos
-## Heridos hombres vs mujeres
+Las personas heridas pertenecian/trabajaban como  `r unique(df_monitor_amplio$herido_a_pertenece_a, na.rm =T)`
+
 
 # Detenciones
-## Detenciones hombres vs mujeres
+El número de personas detenidas es de `r comma(sum(df_monitor_amplio$numero_de_detenidos_as_total, na.rm =T))`. De este número `r comma(sum(df_monitor_amplio$numero_de_detenidos_hombres, na.rm =T))` son hombres y mujeres son `r comma(sum(df_monitor_amplio$numero_de_detenidas_mujeres, na.rm =T))`
 
-# Nombre de grupos criminales 
-## alianzas y rivalidades 
+Las personas detenidas pertenecian/trabajaban como  `r unique(df_monitor_amplio$detenido_a_pertenece_a, na.rm =T)`
 
-# Ataque armados
+# Grupos criminales 
+## Presencia de grupos criminales
+La lista de grupos criminales que se han identificado son `r unique(df_monitor_amplio$nombre_del_grupo_criminal_gc, na.rm =T)`, 
 
-# Tráfico 
+Algunos de estos grupos se encuentran en alianza con `r unique(df_monitor_amplio$alianza_del_gc, na.rm =T)` 
 
-# Persona privadas de la libertad
+En rivalidad con `r unique(df_monitor_amplio$rival_del_gc, na.rm =T)`
+
+## Presencia no violenta
+También se ha identificado la presencia no violenta de los grupos criminales en activiades tales como `r unique(df_monitor_amplio$presencia_no_violenta, na.rm =T)`
+
+## Presencia internacional
+Se ha identificado la presencia criminal de grupos criminales mexicanos en el extranjero en  `r unique(df_monitor_amplio$pais, na.rm =T)`
+
+# Inseguridad, violencia y activiades delictivas
+
+## Ataque armados
+Los ataques que se han registrado son `r names(table(df_monitor_amplio$ataque_armado))`
+
+## Tráfico 
+En México se realiza tráfico ilegal de `r names(table(df_monitor_amplio$trafico))`
+
+## Narcomensajes
+El número de narcamensajes en espacios públicos fue de 131
+
+## Otras actividades delictivas
+Otras actividades delictivas que se han identificado son `r names(table(df_monitor_amplio$otras_actividades_ilicitas))`
+
 ## Número de personas privadas de la libertad
+Son `r comma(sum(df_monitor_amplio$numero_de_personas_privadas_de_su_libertad, na.rm =T))` personas privadas de la libertad o que se encuentran como desaparecidas
 
-# Narcomensajes
+# Fuerzas Armadas e instituciones de seguridad
+## Fuerzas Armadas
 
-# Institucione de seguridad 
-## FFFAA
-## Fuerzas de seguridad 
+Las autoridades militares que se han identificado en el Monitor PPD son `r unique(df_monitor_amplio$autoridad_militar, na.rm =T)`
 
+En actividades como `r unique(df_monitor_amplio$tipo_de_actividad_militar, na.rm =T)`
+
+
+## Instituciones de seguridad 
+
+Las autoridades civiles que se han identificado en el Monitor PPD `r unique(df_monitor_amplio$autoridad_civil, na.rm =T)`
+
+En actividades como `r unique(df_monitor_amplio$tipo_de_actividad_civil, na.rm =T)`

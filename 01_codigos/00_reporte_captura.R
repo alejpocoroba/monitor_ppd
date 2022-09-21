@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       08 de agosto de 2022
+# Última actualización:       13 de agosto de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -42,6 +42,7 @@ m3 <- read_xlsx(paste_inp("Monitor_PPD_julio.xlsx"))
 # Agosto 
 m4 <- read_xlsx(paste_inp("Monitor_PPD_agosto1.xlsx"))
 m5 <- read_xlsx(paste_inp("Monitor_PPD_agosto2.xlsx"))
+m6 <- read_xlsx(paste_inp("Monitor_PPD_agosto3.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
 
@@ -55,17 +56,20 @@ df_j <- m1 %>%
   select(-c(`1.2.6) Enlace de nota duplicada`, 
             `1.2.6.1) Enlaces de notas duplicadas`)) 
 
-# Base m5 tiene valores ocultos de origen
+# Bases que tienen valores ocultos de origen
 m5 <- m5 %>%
   filter(!is.na(Id)) 
 
+m6 <- m6 %>%
+  filter(!is.na(Id)) 
 
 # Se pegan todas las bases
-df_pegada <- df_j %>% 
-  bind_rows(m2) %>% 
-  bind_rows(m3) %>% 
-  bind_rows(m4) %>%
-  bind_rows(m5)
+df_pegada <- df_j %>% # base junio 1
+  bind_rows(m2) %>%   # base junio 2
+  bind_rows(m3) %>%   # base julio
+  bind_rows(m4) %>%   # base agosto 1
+  bind_rows(m5) %>%   # base agosto 2
+  bind_rows(m6)       # base agosto 3
 
 # Limpiar nombres de microdatos
 df_microdatos <- df_pegada %>% 
@@ -279,7 +283,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Corte del Monitor-PPD al 31/08/22 ")
+    caption = paste0("Monitor-PPD al 31/08/22 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
