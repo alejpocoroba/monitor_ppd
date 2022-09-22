@@ -29,6 +29,7 @@ paste_inp <- function(x){paste0("03_datos_limpios/", x)}
 paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
 # 1. Cargar datos --------------------------------------------------------------
+
 load(paste_inp("df_monitor.Rdata"))
 
 # 2. Figuras -------------------------------------------------------------------
