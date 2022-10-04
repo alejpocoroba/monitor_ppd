@@ -110,7 +110,7 @@ v_arresto <- unique(df_limpio$fecha[df_limpio$arresto_caro == 1])
 
 # ---- Filtrar datos 
 df_data <- df_limpio %>% filter(str_detect(estado, "Sonora"), 
-                                # !str_detect(evento, "detenidas"), 
+                                !str_detect(evento, "detenidas"),
                                 # !str_detect(evento, "heridas"), 
                                 fecha >= as.Date("2022-06-01"))
 
@@ -120,12 +120,12 @@ ggplot(
   df_data, 
   # Coordenadas
        aes(x = fecha, y = total, group = evento, color = evento)) +
-  facet_wrap(~evento, scale = "free_y") +
+  facet_wrap(~evento, ncol = 1) +
   # Geoms
   geom_line() +
   geom_point() +
   geom_vline(xintercept = v_arresto, linetype = "dashed") +
-  annotate("text", x = v_arresto + 100000, y = 13, 
+  annotate("text", x = v_arresto + 100000, y = 14, 
            # label = if_else(df_data$evento == "Homicidios", "Arresto de Caro Quintero", NA_character_), 
            label = "Arresto de Caro Quintero", 
            size = 3, family = "Fira Sans", color = "#666666", hjust = 0) +
@@ -147,7 +147,7 @@ ggplot(
 
 # ---- Guardar figura
 ggsave(file = paste_fig("quintero.png"), 
-       width = 10, height = 6)
+       width = 6, height = 5)
 
 
 
@@ -161,7 +161,7 @@ v_jueves <- unique(df_limpio$fecha[df_limpio$jueves_negro     == 1])
 # ---- Filtrar datos 
 df_data <- df_limpio %>% filter(str_detect(estado, "Chihuahua"), 
                                 !str_detect(evento, "privadas"),
-                                !str_detect(evento, "detenidas"),
+                               # !str_detect(evento, "detenidas"),
                                 !str_detect(evento, "heridas"),
                                 fecha >= as.Date("2022-06-01")) %>% 
   # mutate(fecha = as.Date(fecha)) %>% 
@@ -173,7 +173,7 @@ ggplot(
   df_data, 
   # Coordenadas
   aes(x = fecha, y = total, group = evento, color = evento)) +
-  # facet_wrap(~evento, scale = "free_y", ncol = 1) +
+  facet_wrap(~evento, scale = "free_y", ncol = 1) +
   # Geoms
   geom_line() +
   geom_point() +
