@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          08 de noviembre de 2022
-# Última actualización:       08 de noviembre de 2022
+# Última actualización:       10 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -50,7 +50,7 @@ df_juarez1 <- df_chi2 %>%
   filter(fecha_de_los_hechos <= "2022-10-31") %>% 
   # variables de interés
   select(-c("datos_generales":"fecha_de_publicacion", 
-            "titulo_de_la_nota":"hechos",
+            "nombre_de_la_fuente":"hechos",
             "pais":"municipio",
             "grupos_criminales":"grupos_criminales_gc",
             "actividades_delictivas": "muertos",
@@ -65,11 +65,26 @@ df_juarez1 <- df_chi2 %>%
 openxlsx::write.xlsx(df_juarez1, 
                      file = paste_out("juarez.xlsx"), overwrite = T)
 
-
 #### Generalidades-------------------------------------------------------------
+
+# Chihuhua - política de seguridad 
+chi_seg <- df_chi2 %>% 
+  filter(fecha_de_los_hechos >= "2022-06-01") %>% 
+  filter(fecha_de_los_hechos <= "2022-10-31") %>% 
+  select(enlace, titulo_de_la_nota, politica_de_seguridad, municipio) %>% 
+  filter(politica_de_seguridad == "TRUE")
+
 # Totales
 sum(df_juarez1$numero_de_homicidios_total, na.rm = T) # de homicidios: 404
 sum(df_juarez1$numero_de_heridos_as_total, na.rm = T) # de heridos: 138
+
+sum(df_juarez1$numero_de_homicidios_hombre, na.rm = T)
+sum(df_juarez1$numero_de_homicidios_mujer, na.rm = T)
+
+sum(df_juarez1$numero_de_heridos_hombres, na.rm = T)
+sum(df_juarez1$numero_de_heridas_mujeres, na.rm = T)
+
+
 
 # Ataque armado 
 unique(df_juarez1$ataque_armado)
@@ -110,6 +125,9 @@ view(df_homicidios_d1)
 
 # Total: 404 
 sum(df_homicidios_d1$total_homicidios, na.rm = T)
+
+mean(df_homicidios_d1$total_homicidios)
+
 
 ###### Cuerpos localizados -----
 
@@ -217,7 +235,8 @@ sum(df_otro_d5$total_homicidios) # golpes: 1
 ##### Total de heridos----
 # 1) Total heridos - base general
 df_heridxs_d1 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, numero_de_heridos_as_total) %>%
+  select(fecha_de_los_hechos, numero_de_heridos_as_total,
+         numero_de_heridos_hombres, numero_de_heridas_mujeres) %>%
   filter(numero_de_heridos_as_total >= "1") %>% 
   group_by(fecha_de_los_hechos) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
@@ -228,7 +247,7 @@ sum(df_heridxs_d1$total_heridos, na.rm = T)
 
 ###### Agresión -----
 
-# 1) Homicidios - agresión: en general 
+# 1) heridos - agresión: en general 
 df_heridxs_d2 <- df_juarez1 %>% 
   select(fecha_de_los_hechos, 
          numero_de_heridos_as_total, pertenece_a,
@@ -244,7 +263,7 @@ mean(df_heridxs_d2$total_homicidios)
 
 ###### Enfrentamientos -----
 
-# 1) Homicidios - enfrentamiento: en general
+# 1) heridos - enfrentamiento: en general
 df_heridxs_d3 <- df_juarez1 %>% 
   select(fecha_de_los_hechos, 
          numero_de_heridos_as_total, pertenece_a,
@@ -256,6 +275,25 @@ df_heridxs_d3 <- df_juarez1 %>%
 view(df_heridxs_d3)
 # Total
 sum(df_heridxs_d3$total_heridos) # heridos en enfrentamiento: 1
+
+# heridos - armas de fuego (agresió+ enfrentamiento)
+df_heridxs_dos <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total,
+         numero_de_heridos_hombres, 
+         numero_de_heridas_mujeres,
+         ataque_armado) %>%
+ # filter(ataque_armado == "enfrentamiento") 1 hombre herido %>% 
+  filter(ataque_armado == "agresión") %>% 
+  filter(numero_de_heridos_as_total >= "1") %>% 
+  group_by(ataque_armado) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T),
+            total_hombr = sum(numero_de_heridos_hombres, na.rm = T),
+            total_mujer = sum(numero_de_heridas_mujeres, na.rm = T))
+
+
+sum(df_heridxs_dos$numero_de_heridos_hombres, na.rm = T)
+sum(df_heridxs_dos$numero_de_heridas_mujeres, na.rm = T)
 
 ###### Otras -----
 
@@ -404,34 +442,3 @@ ggplot(fecha_semana, aes(x = semana, y = total_semana, group = 1)) +
   guides(color = "none") +
   theme_light()
 
-# Regina control 
-
-fecha_semana <- df_homicidios_d1 %>% 
-  mutate(mes = lubridate::month(fecha_de_los_hechos), 
-         dia = fecha_de_los_hechos,
-         semana = lubridate::week(fecha_de_los_hechos)) %>% 
-  mutate(mes = case_when(
-    mes == "6"  ~ "Junio",
-    mes == "7"  ~ "Julio",
-    mes == "8"  ~ "Agosto",
-    mes == "9"  ~ "Septiembre",
-    mes == "10" ~ "Octubre")) %>% 
-  mutate(mes = factor(
-    mes, levels = c("Junio", "Julio", "Agosto", "Septiembre", "Octubre"))) %>% 
-  mutate(semana_text = paste0("Semana ", semana, "\n(", mes, ")"), 
-         semana_text = forcats::fct_inorder(semana_text)) %>% 
-  group_by(semana, semana_text) %>% 
-  summarize(total_semana = sum(total_homicidios))
-
-ggplot(fecha_semana, aes(x = semana_text, y = total_semana, group = 1)) +
-  geom_point()+
-  geom_line() +
-  ggrepel::geom_text_repel(aes(label = total_semana), hjust = -0.1, color = "black") +
-  labs(title = "Homicidios violentos en Ciudad Juárez",
-       subtitle = "Entre junio y octubre de 2022\n",
-       y = "Número de homicidios\n",
-       x = "\n Semana",
-       caption = "Fuente: Elaboración propia con base en el Monitor-PPD (2022)")+
-  guides(color = "none") +
-  theme_light() +
-  theme(axis.text.x = element_text(angle = 90))
