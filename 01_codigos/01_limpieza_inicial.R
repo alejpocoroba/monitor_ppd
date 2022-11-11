@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       04 de noviembre de 2022
+# Última actualización:       11 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -96,7 +96,7 @@ df_1 <- df_j %>% # base junio 1
   bind_rows(m6) %>% # base agosto 3
   bind_rows(m7) %>% # base septiembre 1
   bind_rows(m8) %>% # base septiembre 2
-  bind_rows(m9)
+  bind_rows(m9)     # base octubre 
 
 ## 2.2. Homologación de variables-----------------------------------------------
 df_2 <- df_1 %>% 
@@ -196,7 +196,9 @@ df_3 <- df_2 %>%
 
 
 # 3. Guardar base sin modificar (amplia, hasta línea 160)-----------------------
-df_monitor_amplio <- df_2 # hasta octubre 
+df_monitor_amplio <- df_2 %>% 
+  filter(fecha_de_los_hechos >= '2022-06-01') %>% 
+  filter(fecha_de_los_hechos <= '2022-11-01') # octubre
 
 openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
 save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
