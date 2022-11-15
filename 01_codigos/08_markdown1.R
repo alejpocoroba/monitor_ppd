@@ -19,6 +19,9 @@ p_load(
   ggtext, mxmaps, sf, 
   viridis, beepr)
 
+# Silenciar msj de .group en dplyr
+options(dplyr.summarise.inform = FALSE)
+
 # Limpiar espacio de trabajo 
 rm(list = ls ())
 
@@ -59,7 +62,7 @@ df_crudo <- df_monitor_amplio %>%
          filter(publicacion >= '2022-06-01') %>% 
          filter(publicacion <= '2022-08-31')
 
-# 3. Homicidios 
+# 3. Homicidios----
 # procesamiento de los datos
 homi_mapa <- df_crudo %>% 
   # variables de interés
@@ -74,8 +77,6 @@ homi_mapa <- df_crudo %>%
   left_join(mxstate.map)
 
 # figura: mapa
-cols <- RColorBrewer::brewer.pal(3,'Blues')[c(1,3)]
-
 ggplot(
   # Datos
   homi_mapa,
@@ -94,4 +95,120 @@ ggplot(
         axis.title = element_blank(),
         panel.background = element_rect(fill = "white", colour = NA))
 
+ggsave(file = paste_fig("map_homicidios.png"), 
+       width = 10, height = 6)
 
+# figura: tabla 
+tabla_homi <- df_crudo %>% 
+  select(homicidio_t, homicidio_v, homicidio_m, 
+         heridos_t, heridos_v, heridos_m,       
+         detenidos_t, detenidos_v, detenidos_m) %>% 
+  summarize_all(~sum(., na.rm = T)) %>% 
+  pivot_longer(
+    cols = homicidio_t:detenidos_m, 
+    names_to = c("evento", "sexo"),
+    names_sep = "_", 
+    values_to = "total") %>% 
+  mutate(
+      sexo = case_when(
+       sexo == "t"  ~ "Total", 
+       sexo == "v"  ~ "Hombre",
+       sexo == "m"  ~ "Mujer"),
+      evento = case_when(
+       evento == "detenidos" ~ "Detenidos(as)",
+       evento == "heridos"   ~ "Heridos(as)",
+       T ~ "Homicidios")) %>% 
+  group_by(evento, sexo) %>% 
+  summarise(total = sum(total)) %>% 
+  pivot_wider(
+    names_from = sexo, 
+    values_from = total) %>% 
+  arrange(desc(evento)) %>% 
+  rename(Evento = evento)
+
+# install.packages("kableextra") - RMarkdown 
+
+# 4. Tipos de homicidios----
+# base - cuerpos
+tip_cuerpo$cuerpos <- as.character(tip_cuerpo$cuerpos)
+
+tip_cuerpo <- df_crudo %>% 
+  select(homicidio_t, cuerpos) %>% 
+  filter(cuerpos == "TRUE") %>% 
+  mutate(cuerpos = case_when(
+          cuerpos == "TRUE" ~ "cuerpos localizados")) %>% 
+  group_by(cuerpos) %>% 
+  summarise(total_cuerpos = sum(homicidio_t, na.rm = T)) %>% 
+  rename(tipo_agresion = cuerpos,
+         total_homicidios = total_cuerpos)
+
+# base - ataque
+tip_ataque <- df_crudo %>% 
+  select(homicidio_t, 
+         ataque,
+         cuerpos) %>% 
+  filter(homicidio_t == "1") %>% 
+  filter(cuerpos == "FALSE") %>% 
+  select(!cuerpos)
+
+# Se categorizan las obversaciones
+unique(tip_ataque2$ataque)
+
+v_fuego <- c("agresión por policias", "agresión en penal", "ataque de motosicarios",
+             "agresión; feminicidio", "agresión", "agresión en anexo", "discusión",
+             "robo", "agresión en anexo", "agresión en casa", "robo de camioneta",
+             "robo a casa", "robo; agresión", "intento de robo", 
+             "venta de camioneta por facebook")
+
+v_enfrenta <- c("enfrentamiento")
+
+v_blanca <- c("ataque con arma blanca", "riña; arma blanca", 
+              "agresión con arma blanca", "arma blanca")
+
+v_golpes <- c("riña", "golpes", "golpeado")
+
+v_otros <- c("bomba molotov", "quemada", "narcobloqueos")
+
+tip_ataque2 <- tip_ataque %>% 
+  mutate(
+    ataque = case_when(
+      ataque %in% v_fuego ~ "arma de fuego",
+      ataque %in% v_enfrenta ~ "enfrentamiento",
+      ataque %in% v_blanca ~ "arma blanca", 
+      ataque %in% v_golpes ~ "golpes",
+      ataque %in% v_otros ~ "otros",
+      ataque == ataque ~ ataque)) %>% 
+  group_by(ataque) %>% 
+  summarise(total_homicidios = sum(homicidio_t)) %>% 
+  drop_na(ataque) %>% 
+  arrange(desc(total_homicidios)) %>% 
+  rename(tipo_agresion = ataque)
+
+# Base cuerpos + ataque2
+tipo_hom <- tip_ataque2 %>% 
+  bind_rows(tip_cuerpo) %>% 
+  arrange(desc(total_homicidios))
+
+# figura: gráfica 
+ggplot(tipo_hom, 
+       aes(x = reorder(tipo_agresion, total_homicidios), y = total_homicidios)) + 
+       # Geoms
+       geom_col() +
+       geom_text(aes(label = total_homicidios), vjust = +0.4, hjust = -0.2) +
+       coord_flip() +
+       # Etiqueta
+       labs(
+            title = "Homicidios violentos en México",
+            subtitle = "Por tipo de evento de junio a agosto de 2022", 
+            x = "Tipo de evento",
+            y = "Número de homicidios", 
+            caption = "Fuente: Monitor-PPD (2022)") + 
+       # Escalas
+       # Tema 
+       theme_bw() + 
+       theme(legend.position = "none")
+
+# 5. Grupos criminales----
+df_gc <- df_crudo %>% 
+  select(estado, grupo, grupo_a, grupo_r)
+  
