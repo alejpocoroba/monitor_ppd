@@ -58,9 +58,9 @@ df_crudo <- df_monitor_amplio %>%
          militar_a       = tipo_de_actividad_militar,
          civil           = autoridad_civil, 
          civil_a         = tipo_de_actividad_civil) %>% 
-         # fecha para el reporte: julio, agosto y septiembre 2022 
-         filter(publicacion >= '2022-06-01') %>% 
-         filter(publicacion <= '2022-08-31')
+  # fecha para el reporte: julio, agosto y septiembre 2022 
+  filter(publicacion >= '2022-06-01') %>% 
+  filter(publicacion <= '2022-08-31')
 
 # 3. Homicidios----
 # procesamiento de los datos
@@ -109,14 +109,14 @@ tabla_homi <- df_crudo %>%
     names_sep = "_", 
     values_to = "total") %>% 
   mutate(
-      sexo = case_when(
-       sexo == "t"  ~ "Total", 
-       sexo == "v"  ~ "Hombre",
-       sexo == "m"  ~ "Mujer"),
-      evento = case_when(
-       evento == "detenidos" ~ "Detenidos(as)",
-       evento == "heridos"   ~ "Heridos(as)",
-       T ~ "Homicidios")) %>% 
+    sexo = case_when(
+      sexo == "t"  ~ "Total", 
+      sexo == "v"  ~ "Hombre",
+      sexo == "m"  ~ "Mujer"),
+    evento = case_when(
+      evento == "detenidos" ~ "Detenidos(as)",
+      evento == "heridos"   ~ "Heridos(as)",
+      T ~ "Homicidios")) %>% 
   group_by(evento, sexo) %>% 
   summarise(total = sum(total)) %>% 
   pivot_wider(
@@ -135,7 +135,7 @@ tip_cuerpo <- df_crudo %>%
   select(homicidio_t, cuerpos) %>% 
   filter(cuerpos == "TRUE") %>% 
   mutate(cuerpos = case_when(
-          cuerpos == "TRUE" ~ "cuerpos localizados")) %>% 
+    cuerpos == "TRUE" ~ "cuerpos localizados")) %>% 
   group_by(cuerpos) %>% 
   summarise(total_cuerpos = sum(homicidio_t, na.rm = T)) %>% 
   rename(tipo_agresion = cuerpos,
@@ -191,21 +191,21 @@ tipo_hom <- tip_ataque2 %>%
 # figura: gráfica 
 ggplot(tipo_hom, 
        aes(x = reorder(tipo_agresion, total_homicidios), y = total_homicidios)) + 
-       # Geoms
-       geom_col() +
-       geom_text(aes(label = total_homicidios), vjust = +0.4, hjust = -0.2) +
-       coord_flip() +
-       # Etiqueta
-       labs(
-            title = "Homicidios violentos en México",
-            subtitle = "Por tipo de evento de junio a agosto de 2022", 
-            x = "Tipo de evento",
-            y = "Número de homicidios", 
-            caption = "Fuente: Monitor-PPD (2022)") + 
-       # Escalas
-       # Tema 
-       theme_bw() + 
-       theme(legend.position = "none")
+  # Geoms
+  geom_col() +
+  geom_text(aes(label = total_homicidios), vjust = +0.4, hjust = -0.2) +
+  coord_flip() +
+  # Etiqueta
+  labs(
+    title = "Homicidios violentos en México",
+    subtitle = "Por tipo de evento de junio a agosto de 2022", 
+    x = "Tipo de evento",
+    y = "Número de homicidios", 
+    caption = "Fuente: Monitor-PPD (2022)") + 
+  # Escalas
+  # Tema 
+  theme_bw() + 
+  theme(legend.position = "none")
 
 # 5. Grupos criminales----
 df_gc <- df_crudo %>% 
@@ -251,7 +251,7 @@ df_gc3 <- df_gc2 %>%
       grupo %in% v_nombres ~ "nombres", 
       grupo == grupo ~ grupo)) %>% 
   filter(!(grupo %in% c("grupo armado", "autodefensas", "nombres")))
-  
+
 unique(df_gc3$grupo)
 
 df_gc4 <- df_gc3 %>% 
@@ -317,10 +317,10 @@ unique(df_gca$grupo_a)
 df_gca1 <- df_gca %>% 
   mutate(otros = case_when(
     str_detect(grupo_a, "Los Aztecas; Los Hermanos Mayores; La Línea o Cártel de Juárez") ~ "Los Aztecas"),
-         otros2 = case_when(
-    str_detect(grupo_a, "Los Aztecas; Los Hermanos Mayores; La Línea o Cártel de Juárez") ~ "Los Hermanos Mayores"),
-         otros3 = case_when(
-    str_detect(grupo_a, "Los Aztecas; Los Hermanos Mayores; La Línea o Cártel de Juárez") ~ "La Línea")) %>% 
+    otros2 = case_when(
+      str_detect(grupo_a, "Los Aztecas; Los Hermanos Mayores; La Línea o Cártel de Juárez") ~ "Los Hermanos Mayores"),
+    otros3 = case_when(
+      str_detect(grupo_a, "Los Aztecas; Los Hermanos Mayores; La Línea o Cártel de Juárez") ~ "La Línea")) %>% 
   mutate(
     grupo_a = case_when(
       grupo_a  == "Los Aztecas; Los Hermanos Mayores; La Línea o Cártel de Juárez"  ~ "Cártel de Juárez",
@@ -355,11 +355,11 @@ df_gca2 <- df_gca1 %>%
 df_gcr <- df_gc %>% 
   select(estado, grupo_r) %>% 
   drop_na()
-  
+
 df_gcr <- df_gcr[-3,]
-  
+
 unique(df_gcr$grupo_r)
-  
+
 df_gcr1 <- df_gcr %>% 
   mutate(otros = case_when(
     str_detect(grupo_r, "Gente Nuevo; Cártel de Sinaloa") ~ "Cártel de Sinaloa",
