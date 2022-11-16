@@ -396,6 +396,13 @@ df_gc_full <- df_gc6 %>%
 
 length(unique(df_gc_full$grupo)) 
 
+unique(df_grupos$estado)
+
+# Estados sin presencia: 4, 5, 6, 10, 15, 20, 22, 27, 29, 31 
+
+estados_faltan <- data.frame("estado" = c("Campeche-04", "Coahuila-05", "Colima-06", "Durango-10", "Estado de México-15", 
+                                          "Oaxaca-20", "Querétaro-22", "Tabasco-27", "Tlaxcala-29", "Yucatán-31"),
+                             "total_grupos" =  c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 # figura: mapa 
 # procesamiento 
 df_grupos <- df_gc_full %>% 
@@ -406,6 +413,7 @@ df_grupos <- df_gc_full %>%
   drop_na(grupo) %>% 
   group_by(estado) %>% 
   summarize(total_grupos = n()) %>% 
+  bind_rows(estados_faltan) %>% 
   mutate(region = str_sub(estado, -2, -1)) %>% 
   left_join(mxstate.map)
 
@@ -428,4 +436,55 @@ ggplot(
         panel.background = element_rect(fill = "white", 
                                         colour = NA))
 
+# ggsave(file = paste_fig("map_grupos.png"), width = 10, height = 6)
+
+
 # 6. Autoridad-----------------------------------------------------------------
+
+# Nota: limpiar "militar" porque hay autoridades civiles
+
+df_autoridad <- df_crudo %>% 
+  select(estado, 
+         militar, civil) %>%
+  mutate(ambas = ifelse(
+    is.na(militar) | is.na(civil), 0, 1)) %>% 
+  mutate(militar = case_when(
+    ambas == 1 ~ NA_character_, 
+    !is.na(militar) ~ "1")) %>% 
+  mutate(civil = case_when(
+    ambas == 1 ~ NA_character_, 
+    !is.na(civil) ~ "1")) %>% 
+  mutate(militar = as.numeric(militar), 
+         civil   = as.numeric(civil)) %>% 
+  group_by(estado) %>% 
+  summarise_all(~ sum(., na.rm = T)) %>% 
+  drop_na(estado)
+
+# En el caso donde están las dos autoridades en un mismo eventos, no se se les 
+# suma de manera individual. 
+
+# Total = todas las intervenciones de un tipo de autoridad (militar, civil) país
+t_tip_auto <- df_autoridad %>% 
+  mutate(militar = militar/sum(militar)) %>% 
+  mutate(civil   = civil/sum(civil))     %>% 
+  mutate(ambas   = ambas/sum(ambas))     %>% 
+  mutate(militar = scales::percent(militar, accuracy = 0.1), 
+         civil   = scales::percent(civil, accuracy = 0.1),
+         ambas   = scales::percent(ambas, accuracy = 0.1)) %>% 
+  mutate(estado = str_sub(estado, 1, -4))
+
+# Total = todas las intervenciones de todas autoridades en un estado 
+t_tip_estado <- df_autoridad %>% 
+  mutate(total =  militar + civil + ambas) %>% 
+  mutate(militar = militar/total,
+         civil   = civil/total, 
+         ambas   = ambas/total, 
+         militar = scales::percent(militar, accuracy = 0.1), 
+         civil   = scales::percent(civil, accuracy = 0.1),
+         ambas   = scales::percent(ambas, accuracy = 0.1)) %>% 
+  select(!total) %>% 
+  mutate(estado = str_sub(estado, 1, -4))
+
+
+
+
