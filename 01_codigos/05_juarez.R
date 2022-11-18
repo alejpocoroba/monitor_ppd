@@ -399,8 +399,7 @@ ggplot(fecha, aes(x = mes, y = mes_total, group = 1)) +
 
 
 # Guardar figura
-ggsave(file = paste_fig(paste0("homicidio_juarez", ".png")), 
-       width = 10, height = 6)
+# ggsave(file = paste_fig(paste0("homicidio_juarez", ".png")),  width = 10, height = 6)
   
 # Homicidios día
 

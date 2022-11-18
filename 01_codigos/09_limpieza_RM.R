@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          09 de noviembre de 2022
-# Última actualización:       15 de noviembre de 2022
+# Última actualización:       17 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -77,6 +77,7 @@ homi_mapa <- df_crudo %>%
   left_join(mxstate.map)
 
 # figura: mapa
+
 ggplot(
   # Datos
   homi_mapa,
@@ -88,7 +89,7 @@ ggplot(
        subtitle = "De julio, agosto y septiembre del 2022\n",
        fill = "Número de homicidios", 
        caption = "Fuente: Monitor-PPD (2022)") +
-  scale_fill_viridis_b(breaks = c(200, 300, 400, 500, 600)) +
+  scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
   theme(axis.line = element_blank(), 
         axis.ticks = element_blank(), 
         axis.text = element_blank(), 
@@ -189,23 +190,30 @@ tipo_hom <- tip_ataque2 %>%
   arrange(desc(total_homicidios))
 
 # figura: gráfica 
-ggplot(tipo_hom, 
-       aes(x = reorder(tipo_agresion, total_homicidios), y = total_homicidios)) + 
-  # Geoms
-  geom_col() +
-  geom_text(aes(label = total_homicidios), vjust = +0.4, hjust = -0.2) +
-  coord_flip() +
-  # Etiqueta
-  labs(
-    title = "Homicidios violentos en México",
-    subtitle = "Por tipo de evento de junio a agosto de 2022", 
-    x = "Tipo de evento",
-    y = "Número de homicidios", 
-    caption = "Fuente: Monitor-PPD (2022)") + 
-  # Escalas
-  # Tema 
-  theme_bw() + 
+ggplot(tipo_hom,  
+       aes(x = reorder(tipo_agresion, total_homicidios), y = total_homicidios)) +  
+  # Geoms 
+  geom_col() + 
+  geom_text(aes(label = scales::comma(total_homicidios)), vjust = +0.4,
+            hjust = if_else(tipo_hom$total_homicidios<max(tipo_hom$total_homicidios), -0.2, 1.5),
+            color = if_else(tipo_hom$total_homicidios<max(tipo_hom$total_homicidios), "black", "white")
+  ) + 
+  coord_flip() + 
+  # Etiqueta 
+  labs( 
+    title = "Homicidios violentos en México", 
+    subtitle = "Por tipo de evento de junio a agosto de 2022",  
+    x = "Tipo de evento", 
+    y = "Número de homicidios",  
+    caption = "Fuente: Monitor-PPD (2022)") +  
+  # Escalas 
+  scale_y_continuous(label = scales::comma_format()) +
+  # Tema  
+  theme_bw() +  
   theme(legend.position = "none")
+
+# ggsave(file = paste_fig("map_tip_homicidios.png"), width = 10, height = 6)
+
 
 # 5. Grupos criminales----
 df_gc <- df_crudo %>% 
@@ -429,6 +437,7 @@ ggplot(
        subtitle = "Entre julio, agosto y septiembre del 2022\n",
        fill = "Número", 
        caption = "Fuente: Monitor-PPD (2022)") +
+  scale_fill_viridis(option="plasma", breaks = c(1, 5, 10))+
   theme(axis.line = element_blank(), 
         axis.ticks = element_blank(), 
         axis.text = element_blank(), 
@@ -438,11 +447,45 @@ ggplot(
 
 # ggsave(file = paste_fig("map_grupos.png"), width = 10, height = 6)
 
-
 # 6. Autoridad-----------------------------------------------------------------
 
-# Nota: limpiar "militar" porque hay autoridades civiles
+df_desparecidos <- df_crudo %>% 
+  # variables de interés
+  select(estado, desaparecidos_n) %>% 
+  group_by(estado) %>% 
+  summarize(total_desparecidos = sum(desaparecidos_n, na.rm = T)) %>% 
+  mutate(region = str_sub(estado, -2, -1)) %>% 
+  left_join(mxstate.map, by = "region")
 
+
+#  Figura 
+cols <- RColorBrewer::brewer.pal(3,'Blues')[c(1,3)]
+
+ggplot(
+  # Datos
+  df_desparecidos,
+  # Coordenadas
+  aes(long, lat, group = group, fill = total_desparecidos)) +
+  coord_map() +
+  geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
+  labs(title = "Personsas desaparecidas y/ sin localizar en México",
+       subtitle = "Entre junio, julio y agosto del 2022\n",
+       fill = "Número", 
+       caption = "Fuente: Monitor-PPD (2022)") +
+  scale_fill_gradient(low=cols[1],high=cols[2]) +
+  theme(axis.line = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.text = element_blank(), 
+        axis.title = element_blank(),
+        panel.background = element_rect(fill = "white", 
+                                        colour = NA))
+
+
+
+
+# ggsave(file = paste_fig("map_desapa.png"), width = 10, height = 6)
+
+# 7. Autoridad-----------------------------------------------------------------
 df_autoridad <- df_crudo %>% 
   select(estado, 
          militar, civil) %>%
@@ -485,6 +528,9 @@ t_tip_estado <- df_autoridad %>%
   select(!total) %>% 
   mutate(estado = str_sub(estado, 1, -4))
 
+beepr::beep(9)
+
+# Fin----
 
 
 

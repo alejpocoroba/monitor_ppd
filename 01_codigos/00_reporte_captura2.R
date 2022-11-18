@@ -52,7 +52,7 @@ m8 <- read_xlsx(paste_inp("Monitor_PPD_septiembre2.xlsx"))
 m9 <- read_xlsx(paste_inp("Monitor_PPD_octubre.xlsx"))
 
 # Noviembre
-m10 <- read_xlsx(paste_inp("Monitor2_PPD_noviembre11.10.xlsx"))
+m10 <- read_xlsx(paste_inp("Monitor2_PPD_noviembre17.11.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
 
@@ -92,7 +92,7 @@ df_microdatos1 <- df_pegada %>%
          "estado"      = "x1_3_3_estado")
 
 # m10 tiene estructura diferente
-df_microdatos2 <- m10 %>% # noviembre al 10/11
+df_microdatos2 <- m10 %>% # noviembre al 17/11
   janitor::clean_names() %>% 
   select("responsable" = "x1_1_responsable",
          "publicacion" = "x1_2_1_fecha_de_publicacion",
@@ -174,7 +174,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 10/11/22 ")
+    caption = paste0("Fuente: Monitor-PPD al 17/11/22 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -215,7 +215,7 @@ for(i in 6:11) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 10/11/22 ")
+      caption = paste0("Fuente: Monitor-PPD al 17/11/22 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +
