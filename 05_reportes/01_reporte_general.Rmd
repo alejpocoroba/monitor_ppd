@@ -209,6 +209,40 @@ ggplot(tipo_hom,
 
 ```
 
+## Homicidios, heridos(as) y detenidos(as)
+```{r tabla de homicidios, heridos(as) y detenidos(as)}
+tabla_homi <- df_crudo %>% 
+  select(homicidio_t, homicidio_v, homicidio_m, 
+         heridos_t, heridos_v, heridos_m,       
+         detenidos_t, detenidos_v, detenidos_m) %>% 
+  summarize_all(~sum(., na.rm = T)) %>% 
+  pivot_longer(
+    cols = homicidio_t:detenidos_m, 
+    names_to = c("evento", "sexo"),
+    names_sep = "_", 
+    values_to = "total") %>% 
+  mutate(
+    sexo = case_when(
+      sexo == "t"  ~ "Total", 
+      sexo == "v"  ~ "Hombre",
+      sexo == "m"  ~ "Mujer"),
+    evento = case_when(
+      evento == "detenidos" ~ "Detenidos(as)",
+      evento == "heridos"   ~ "Heridos(as)",
+      T ~ "Homicidios")) %>% 
+  group_by(evento, sexo) %>% 
+  summarise(total = sum(total)) %>% 
+  pivot_wider(
+    names_from = sexo, 
+    values_from = total) %>% 
+  arrange(desc(evento)) %>% 
+  rename(Evento = evento)
+
+knitr::kable(tabla_homi)
+
+```
+
+
 \newpage
 
 # Grupos criminales

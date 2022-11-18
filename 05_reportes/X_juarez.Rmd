@@ -1,0 +1,367 @@
+---
+title: "__Ciudad Juárez__"
+# subtitle: "__junio, agosto y septiembre de 2022__"
+author: "Alejandro Pocoroba y Laura Atuesta"
+# date: "17/11/2022"
+# date: "Actualizado el `r format(Sys.time(), '%d-%m-%Y')`"
+output: 
+  rmarkdown::pdf_document:
+    toc: true 
+    latex_engine: xelatex
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Liberías
+require(pacman)
+p_load(readxl, tidyverse, dplyr, stringr, srvyr, lubridate, zoo, ggtext, 
+       mxmaps, sf, viridis, beepr, kableextra)
+
+# Silenciar mensajes de .group en dplyr
+options(dplyr.summarise.inform = FALSE)
+
+# Limpiar espacio de trabajo 
+rm(list=ls())
+```
+
+El 11 de agosto del 2022, el grupo criminal Los Mexicles y Los Chapos sostuvieron una riña al interior del Centro de Reinserción Social Estatal (CERESO) Número 3 en Ciudad Juárez, Chihuahua. Esta confrontación se extendió y se transformó en una serie de eventos violentos contra la población. Los medios locales reportaron negocios y vehículos incendiados, detonaciones de arma de fuego y 11 personas asesinadas. Entre las víctimas un menor de edad, empleados de una tienda comercial y de una radio difusora, personas privadas de la libertad y [transeúntes](https://www.infobae.com/america/mexico/2022/08/13/jueves-negro-en-ciudad-juarez-quienes-eran-las-11-victimas-de-pandillas-del-narco/). Si bien este evento -titulado por estos medios como “jueves negó”- es excepcional porque ocurrieron de manera simultánea distintos hechos violentos, los asesinatos en Ciudad Juárez han sido una constante, en su expresión de feminicidios y por los atribuidos a la disputa entre los grupos criminales (Cruz, 2011; Monárrez, 2013; 2021).   
+
+Ciudad Juárez es un territorio de interés para los grupos criminales por ser frontera con Estados Unidos para realizar negocios ilegales, tales como el tráfico de sustancias ilegales, armas y personas (Payan, 2011). La organización Cártel de Juárez ha tenido un control constante en este municipio. En 2008, el Cártel de Sinaloa buscó el control e inició una cruente guerra, a la cual también se le sumó la participación del ejército mexicano y la entonces policía federal (Valdés, 2013). Durante este periodo de confrontación, ambas organizaciones recurrieron a grupos criminales locales: el Cártel de Juárez a La Línea y Los Aztecas, mientras tanto Los Mexicles, Los Artistas Asesinos y Gente Nueva están con el Cártel de Sinaloa. Desde entonces estos grupos han encabezado la batalla por Ciudad Juárez. En 2022, los medios locales documentaron la presencia criminal de Los Sonora, grupo de “El Pompi”, La Empresa, el Cártel del Valle y [Aztecas Vieja Escuela](https://diario.mx/estado/levantan-a-comerciante-de-puerto-palomas-por-no-pagar-cuota-20220728-1955560.html).2 
+
+De acuerdo con el Monitor de Fuentes Abiertas del Programa de Política de Drogas (Monitor-PPD) en Ciudad Juárez hubo 404 homicidios, entre junio y octubre de 2022. Durante estos meses, se han reportado 3.2 homicidios al día en promedio. Del total de homicidios, 298 son hombres y 57 mujeres. Según Monárrez (2021), las personas asesinadas en Juárez se concentran en zonas de pobreza y marginación. Las fechas con el mayor número de asesinatos son el 13 de octubre (17), el 11 de agosto (12) y, días antes del “jueves negro”, 8 de agosto (10). A excepción de septiembre, la tendencia de homicidios violentos va al alza (Figura 1). El incremento de esta cifra, coincidieron el presidente municipal -Cruz Pérez Cuéllar- y el titular de Seguridad Pública Municipal -César Muñoz Morales-, se debe por un reacomodo entre los grupos delictivos y el [narcomenudeo](https://diario.mx/juarez/atribuye-alcalde-los-asesinatos-al-narcomenudeo-20221106-1989809.html).  
+
+```{r dataframes}
+# Funciones con direcciones de las carpetas
+paste_inp <- function(x){paste0("../03_datos_limpios/", x)}
+paste_fig <- function(x){paste0("../04_figuras/"      , x)}
+paste_out <- function(x){paste0("../03_datos_limpios/", x)}
+
+# Cargar datos
+load(paste_out("df_monitor_amplio.Rdata"))
+
+# Procesar datos------
+df_chi1 <- df_monitor_amplio %>% 
+  filter(estado == "Chihuahua-08")
+
+# Limpieza en el nombre de Juárez
+v_juarez <- c("Juárez-07-048", "Juárez-16-046")
+
+df_chi2 <- df_chi1 %>% 
+  mutate(municipio = case_when(municipio %in% v_juarez  ~ "Juárez-08-037",
+                               municipio == municipio ~ municipio)) 
+
+## Datos de Ciudad Juárez-----
+df_juarez1 <- df_chi2 %>% 
+  filter(municipio == "Juárez-08-037") %>% 
+  filter(fecha_de_los_hechos >= "2022-06-01") %>% 
+  filter(fecha_de_los_hechos <= "2022-10-31") %>% 
+  # variables de interés
+  select(-c("datos_generales":"fecha_de_publicacion", 
+            "nombre_de_la_fuente":"hechos",
+            "pais":"municipio",
+            "grupos_criminales":"grupos_criminales_gc",
+            "actividades_delictivas": "muertos",
+            "victimas", "detenidos_as", "ataque_armado_t", 
+            "otras_actividades_delictivas", "presencia_internacional",
+            "presencia_no_violenta_t", "presencia_no_violenta",
+            "instituciones_de_seguridad": "fuerzas_armadas", 
+            "fuerzas_de_seguridad", "politica_de_seguridad_y_de_drogas",
+            "politica_de_drogas"))
+
+# Guardar base de Juárez
+openxlsx::write.xlsx(df_juarez1, 
+                     file = paste_out("juarez.xlsx"), overwrite = T)
+
+#### Generalidades-------------------------------------------------------------
+
+# Chihuhua - política de seguridad 
+chi_seg <- df_chi2 %>% 
+  filter(fecha_de_los_hechos >= "2022-06-01") %>% 
+  filter(fecha_de_los_hechos <= "2022-10-31") %>% 
+  select(enlace, titulo_de_la_nota, politica_de_seguridad, municipio) %>% 
+  filter(politica_de_seguridad == "TRUE")
+
+# Ataque armado 
+
+
+# 1) Agresión  
+agresion <- df_juarez1 %>% 
+  filter(ataque_armado == "agresión")
+
+# 2) Enfrentamiento  
+enfrentamiento <- df_juarez1 %>% 
+  filter(ataque_armado == "enfrentamiento")
+
+
+# Presencia criminal 
+grupos <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         nombre_del_grupo_criminal_gc, alianza_del_gc, rival_del_gc,
+         numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s,
+         numero_de_heridos_as_total, herido_a_pertenece_a,
+         ataque_armado,
+         autoridad_civil, autoridad_militar)
+
+
+#### Homicidios----------------------------------------------------------------
+
+##### Total de homicidios----
+# 1) Total homicidios - base general
+df_homicidios_d1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, numero_de_homicidios_total) %>%
+  filter(numero_de_homicidios_total >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+###### Cuerpos localizados -----
+
+# 1) Homicidios - cuerpos localizados: general
+df_cuerpos_d1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s) %>% 
+  filter(cuerpo_s_localizado_s == "TRUE") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+view(df_cuerpos_d1)
+
+###### Agresión -----
+
+# 1) Homicidios - agresión: en general 
+df_agre_d1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "agresión") %>% 
+  filter(numero_de_homicidios_total >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+###### Enfrentamientos -----
+
+# 1) Homicidios - enfrentamiento: en general
+df_enfren_d1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "enfrentamiento") %>% 
+  filter(numero_de_homicidios_total >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+###### Otras -----
+
+# 1) Homicidios - arma blanca
+df_otro_d1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "ataque con arma blanca") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+# 2) Homicidios - bomba molotv
+df_otro_d2 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "bomba molotov") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+
+# 3) Homicidios - riña
+df_otro_d3 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "riña") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+# 4) Homicidios - golpeados
+df_otro_d4 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "golpeado") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+# 5) Homicidios - golpes
+df_otro_d5 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_homicidios_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "golpes") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
+#### Heridxs--------------------------------------------------------------
+
+##### Total de heridos----
+# 1) Total heridos - base general
+df_heridxs_d1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, numero_de_heridos_as_total,
+         numero_de_heridos_hombres, numero_de_heridas_mujeres) %>%
+  filter(numero_de_heridos_as_total >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+
+###### Agresión -----
+
+# 1) heridos - agresión: en general 
+df_heridxs_d2 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "agresión") %>% 
+  filter(numero_de_heridos_as_total >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+###### Enfrentamientos -----
+
+# 1) heridos - enfrentamiento: en general
+df_heridxs_d3 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "enfrentamiento") %>% 
+  filter(numero_de_heridos_as_total >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+# heridos - armas de fuego (agresió+ enfrentamiento)
+df_heridxs_dos <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total,
+         numero_de_heridos_hombres, 
+         numero_de_heridas_mujeres,
+         ataque_armado) %>%
+ # filter(ataque_armado == "enfrentamiento") 1 hombre herido %>% 
+  filter(ataque_armado == "agresión") %>% 
+  filter(numero_de_heridos_as_total >= "1") %>% 
+  group_by(ataque_armado) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T),
+            total_hombr = sum(numero_de_heridos_hombres, na.rm = T),
+            total_mujer = sum(numero_de_heridas_mujeres, na.rm = T))
+
+###### Otras -----
+
+# 1) Heridos - arma blanca
+df_heridxs_d4 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "ataque con arma blanca") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+# 2) Heridos - bomba molotv
+df_heridxs_d5 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "bomba molotov") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+# 3) Homicidios - riña
+df_heridxs_d6 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "riña") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+
+# 4) Homicidios - golpeados
+df_heridxs_d7 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "golpeado") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+# 5) Homicidios - golpes
+df_heridxs_d8 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         numero_de_heridos_as_total, pertenece_a,
+         ataque_armado) %>% 
+  filter(ataque_armado == "golpes") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
+
+
+#### Desparecidxs---------------------------------------------------------------
+
+# 1) Desaparecidos: general 
+df_desaparecidos1 <- df_juarez1 %>% 
+  select(fecha_de_los_hechos, 
+         privacion_de_la_libertad, numero_de_personas_privadas_de_su_libertad) %>% 
+  filter(privacion_de_la_libertad == "TRUE") %>% 
+  filter(numero_de_personas_privadas_de_su_libertad >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_desaparecidos = sum(numero_de_personas_privadas_de_su_libertad, na.rm = T))
+
+# 3. Figuras--------------------------------------------------------------------
+
+# Homicidios mensual 
+
+fecha <- df_homicidios_d1 %>% 
+  mutate(mes = lubridate::month(fecha_de_los_hechos), 
+         dia = fecha_de_los_hechos,
+         semana = lubridate::week(fecha_de_los_hechos)) %>% 
+  group_by(mes) %>% 
+  summarize(mes_total = sum(total_homicidios)) %>% 
+  mutate(mes = case_when(
+    mes == "6"  ~ "Junio",
+    mes == "7"  ~ "Julio",
+    mes == "8"  ~ "Agosto",
+    mes == "9"  ~ "Septiembre",
+    mes == "10" ~ "Octubre")) %>% 
+  mutate(mes = factor(
+    mes, levels = c("Junio", "Julio", "Agosto", "Septiembre", "Octubre")))
+
+ggplot(fecha, aes(x = mes, y = mes_total, group = 1)) +
+  geom_point()+
+  geom_line() +
+  ggrepel::geom_text_repel(aes(label = mes_total), hjust = -0.1, color = "black") +
+  labs(title = "Homicidios violentos en Ciudad Juárez",
+       subtitle = "Entre junio y octubre de 2022\n",
+       y = "Número de homicidios\n",
+       x = "\nMes",
+       caption = "Fuente: Elaboración propia con base en el Monitor-PPD (2022)")+
+  guides(color = "none") +
+  theme_light() +
+  theme(legend.position = "none")
+```
+
+La mayoría de los homicidios ocurrió por arma de fuego. De los 210 eventos reportados de este tipo de agresión murieron 199 personas, es decir, en 9 de cada 10 ataques con arma de fuego hay personas fallecidas. La forma en cómo se desarrollan estos eventos es similar: las personas armadas llegan, disparan y se van, el lugar donde ocurren son la calle, frente y/o al interior de la vivienda de la víctima. También se reportó cuatro enfrentamientos donde hubo un muerto. Militares y policías participaron en estos enfrentamientos contra civiles armados. En hechos distintos se identificó a miembros de Los Mexicles y de Los Sonora. En estas agresiones tanto con arma de fuego como en los enfrentamientos también se reportaron 78 hombres y 21 mujeres heridas. En 2021, entre septiembre y diciembre, la policía municipal y el ejército incautaron 300 armas de [fuego](https://www.eldiariodechihuahua.mx/estado/imparable-trafico-de-armas-a-juarez-20211230-1880497.html ). Ciudad Juárez al ser frontera, existe una serie de incentivos para el tráfico de armas desde Estados Unidos. El periodista Jesús Esquivel documentó la facilidad con la que se puede ingresar armas de alto calibre desde [El Paso a Ciudad Juárez](https://www.youtube.com/watch?v=XGfUMX4hLco).
+
+Los grupos criminales también han recurrido a dejar cuerpos sin vida y extremidades humanas en las calles. En el Monitor-PPD (2022) se identificaron 176 cuerpos sin vida localizados. Para Marco Morales, antropólogo forense de la fiscalía de Juárez, la maldad y la crueldad con la que matan a las personas es lo que más le impacta, [no la muerte](https://diario.mx/estado/lo-que-mas-impacta-ya-es-como-murieron-20221103-1988820.html); ya que estos cuerpos cuentan con impactos de bala en el cráneo, huellas de tortura, son descuartizados, aparecen en bolsas de basura, envueltos en cobijas o en alcantarillas. En ocasiones, junto a estos cuerpos se colocan narco mensajes. Por ejemplo, el 27 de octubre se encontraron seis cuerpos en una brecha que conduce al desierto de Samalayuca, junto a ellos una cartulina en la que se leía “Esto les pasa por polleros”. Los polleros son personas que conocen las rutas para ingresar a Estados Unidos desde México de manera irregular, trabajan de forma voluntario o forzada con grupos criminales. 
+
+Dentro de la diversificación de actividades delictivas, los grupos criminales han incursionado en el tráfico de migrantes. En especial, con la llegada masiva de migrantes y deportaciones a Ciudad Juárez. Los Mexicles, Gente Nueva, La Línea y Los Aztecas, por mencionar algunos, tienen interés en el tráfico de migrantes, ya que les ha resultado más redituable que el tráfico de [sustancias ilegales](https://www.jornada.com.mx/notas/2022/11/08/estados/carteles-ganan-mas-con-la-trata-que-con-drogas-en-chihuahua/). Los Mexicles son el grupo líder en este negocio; emplean la violencia para someter a los migrantes y tenerlos privados de la libertad, mientras que extorsionan a sus familiares y cuando los llevan a Estados Unidos son utilizados para ingresar sustancias ilegales. La ruta para el tráfico de migrantes que emplean los grupos criminales son las líneas terrestres de transporte, eso ha ocasionado que los camiones que transportan migrantes sean atacados, secuestrados o asaltados por [grupos rivales](https://www.elheraldodechihuahua.com.mx/local/chihuahua/los-mexicles-lideran-trafico-de-migrantes-en-chihuahua-9127183.html?utm_source=OEM&utm_campaign=0c3aee7154-EMAIL_CAMPAIGN_2022_11_01_09_46&utm_medium=email&utm_term=0_905a4d70c0-0c3aee7154-40065484). También, en el Valle de Juárez -zona conformada por los municipios Práxedis, Guadalupe y Ciudad Juárez- la extorsión a los migrantes y la desaparición de personas está relacionada no sólo con los grupos criminales, sino también con [militares](https://laverdadjuarez.com/2022/09/07/la-complicidad-del-estado-el-ultimo-rastro-en-el-valle/). 
+
+Bibliografía 
+
+- Cruz, S. (2011) Homicidio masculino en Ciudad Juárez. Costos de las masculinidades subordinadas. Frontera Norte, 23, 46, pp. 239-262. 
+
+- Monárrez, J. (2013) Ciudad Juárez, tiradero nacional de muertos: entre el discurso del guerrero y el caballero. Debate Feminista, 47, pp. 205-234. 
+
+- Monárrez, J. (2021) Muerte, coerción legítima y existencia precaria. Olmos, M. (Comp.) Fronteras culturales, alteridad y violencia, (253-292). Tijuana: El Colegio de la Frontera Norte.  
+
+- Monitor de Fuentes Abiertas del Programa de Política de Drogas, Monitor-PPD (2022). Programa de Política de Drogas.  
+
+- Payan, T. (2011) Ciudad Juárez: la Tormenta Perfecta. Armijo, N. (Ed.) Migración y seguridad: nuevo desafío en México (127-143). Distrito Federal: Colectivo de Análisis de la Seguridad con Democracia (CASEDE) A.C.  
+
+- Valdés, G. (2013) Historia del narcotráfico en México. Apuntes para entender al crimen organizado y la violencia. Distrito Federal: Aguilar. 
