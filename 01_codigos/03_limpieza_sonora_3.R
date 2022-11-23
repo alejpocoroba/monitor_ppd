@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          26 de octubre de 2022
-# Última actualización:       03 de noviembre de 2022
+# Última actualización:       23 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -25,6 +25,7 @@ rm(list = ls ())
 # Funciones con direcciones de las carpetas
 paste_inp <- function(x){paste0("03_datos_limpios/", x)}
 paste_fig <- function(x){paste0("04_figuras/"      , x)}
+paste_out <- function(x){paste0("03_datos_limpios/", x)}
 
 # 1. Cargar datos---------------------------------------------------------------
 load(paste_inp("df_monitor_amplio.Rdata"))
@@ -44,7 +45,10 @@ df_sonora <- df_monitor_amplio %>%
 df_sonora_des <- df_sonora %>% 
   filter(fecha_de_los_hechos >= "2022-07-14") %>% 
   filter(fecha_de_los_hechos <= "2022-08-31")
+
 View(df_sonora_des)
+
+# openxlsx::write.xlsx(df_sonora_des, file = paste_out("sonora.xlsx"), overwrite = T)
 
 # Variables de interés: 
 # homicidio, heridos, pertenece + ataque + autoridad (mili y civi)
@@ -91,6 +95,7 @@ grupos <- df_sonora_des %>%
 # 1) Total homicidios - base general
 df_homicidios_d1 <- df_ataque_desp %>% 
     select(municipio, fecha_de_los_hechos, numero_de_homicidios_total) %>% 
+    filter(numero_de_homicidios_total >= "1") %>% 
     group_by(fecha_de_los_hechos, municipio) %>% 
     summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_homicidios_d1)
@@ -98,6 +103,7 @@ view(df_homicidios_d1)
 # 2) Total homicidios - fecha de los hechos 
 df_homicidios_d2 <- df_ataque_desp %>% 
   select(municipio, fecha_de_los_hechos, numero_de_homicidios_total) %>% 
+  filter(numero_de_homicidios_total >= "1") %>% 
   group_by(fecha_de_los_hechos) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_homicidios_d2)
@@ -105,6 +111,7 @@ view(df_homicidios_d2)
 # 3) Total homicidios - municipal 
 df_homicidios_d3 <- df_ataque_desp %>% 
   select(municipio, fecha_de_los_hechos, numero_de_homicidios_total) %>% 
+  filter(numero_de_homicidios_total >= "1") %>% 
   group_by(municipio) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_homicidios_d3)
@@ -352,4 +359,13 @@ df_desaparecidos1 <- df_sonora_des %>%
   summarise(total_desaparecidos = sum(numero_de_personas_privadas_de_su_libertad, na.rm = T))
 sum(df_desaparecidos1$total_desaparecidos) # desaparecido:98
 View(df_desaparecidos1)
+
+# 2) Desaparecidos - fecha de hechos
+df_desaparecidos2 <- df_sonora_des %>% 
+  select(municipio, fecha_de_los_hechos, 
+         privacion_de_la_libertad, numero_de_personas_privadas_de_su_libertad) %>% 
+  filter(privacion_de_la_libertad == "TRUE") %>% 
+  filter(numero_de_personas_privadas_de_su_libertad >= "1") %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_desaparecidos = sum(numero_de_personas_privadas_de_su_libertad, na.rm = T))
 
