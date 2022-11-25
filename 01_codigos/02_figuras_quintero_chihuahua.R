@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          21 de agosto de 2022
-# Última actualización:       21 de agosto de 2022
+# Última actualización:       24 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -111,8 +111,10 @@ v_arresto <- unique(df_limpio$fecha[df_limpio$arresto_caro == 1])
 # ---- Filtrar datos 
 df_data <- df_limpio %>% filter(str_detect(estado, "Sonora"), 
                                 !str_detect(evento, "detenidas"),
+                                !str_detect(evento, "Personas privadas de la libertad"),
                                 # !str_detect(evento, "heridas"), 
-                                fecha >= as.Date("2022-06-01"))
+                                fecha >= as.Date("2022-06-01"), 
+                                fecha <= as.Date("2022-08-31"))
 
 # ---- Visualización 
 ggplot(
@@ -160,7 +162,7 @@ v_jueves <- unique(df_limpio$fecha[df_limpio$jueves_negro     == 1])
 
 # ---- Filtrar datos 
 df_data <- df_limpio %>% filter(str_detect(estado, "Chihuahua"), 
-                                !str_detect(evento, "privadas"),
+                               #  !str_detect(evento, "privadas"),
                                # !str_detect(evento, "detenidas"),
                                 !str_detect(evento, "heridas"),
                                 fecha >= as.Date("2022-06-01")) %>% 
