@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          26 de octubre de 2022
-# Última actualización:       23 de noviembre de 2022
+# Última actualización:       24 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -13,8 +13,7 @@
 # 0. Configuración inicial------------------------------------------------------
 # Liberías
 require(pacman)
-p_load(
-  readxl, tidyverse, dplyr, srvyr, lubridate, zoo, ggtext, beepr)
+p_load(readxl, tidyverse, dplyr, srvyr, lubridate, zoo, ggtext, beepr)
 
 # Silenciar msj de .group en dplyr
 options(dplyr.summarise.inform = FALSE)
