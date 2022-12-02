@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          09 de noviembre de 2022
-# Última actualización:       17 de noviembre de 2022
+# Última actualización:       29 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -154,7 +154,7 @@ tip_ataque <- df_crudo %>%
 # Homogenizar 
 unique(tip_ataque2$ataque)
 
-v_fuego <- c("agresión por policias", "agresión en penal", "ataque de motosicarios",
+v_agresion <- c("agresión por policias", "agresión en penal", "ataque de motosicarios",
              "agresión; feminicidio", "agresión", "agresión en anexo", "discusión",
              "robo", "agresión en anexo", "agresión en casa", "robo de camioneta",
              "robo a casa", "robo; agresión", "intento de robo", 
@@ -172,7 +172,7 @@ v_otros <- c("bomba molotov", "quemada", "narcobloqueos")
 tip_ataque2 <- tip_ataque %>% 
   mutate(
     ataque = case_when(
-      ataque %in% v_fuego ~ "arma de fuego",
+      ataque %in% v_agresion ~ "agresion",
       ataque %in% v_enfrenta ~ "enfrentamiento",
       ataque %in% v_blanca ~ "arma blanca", 
       ataque %in% v_golpes ~ "golpes",

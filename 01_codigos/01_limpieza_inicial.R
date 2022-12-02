@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       11 de noviembre de 2022
+# Última actualización:       25 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 

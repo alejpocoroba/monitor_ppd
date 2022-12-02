@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          10 de noviembre de 2022
-# Última actualización:       10 de noviembre de 2022
+# Última actualización:       25 de noviembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2
@@ -52,7 +52,7 @@ m8 <- read_xlsx(paste_inp("Monitor_PPD_septiembre2.xlsx"))
 m9 <- read_xlsx(paste_inp("Monitor_PPD_octubre.xlsx"))
 
 # Noviembre
-m10 <- read_xlsx(paste_inp("Monitor2_PPD_noviembre17.11.xlsx"))
+m10 <- read_xlsx(paste_inp("Monitor2_PPD_noviembre25.11.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
 
@@ -231,15 +231,5 @@ for(i in 6:11) {
 }
 
 # Fin 
-
-
-
-
-
-
-
-
-
-
 
 
