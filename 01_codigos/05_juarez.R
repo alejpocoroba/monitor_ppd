@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          08 de noviembre de 2022
-# Última actualización:       10 de noviembre de 2022
+# Última actualización:       07 de diciembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -389,7 +389,7 @@ ggplot(fecha, aes(x = mes, y = mes_total, group = 1)) +
   geom_line() +
   ggrepel::geom_text_repel(aes(label = mes_total), hjust = -0.1, color = "black") +
   labs(title = "Homicidios violentos en Ciudad Juárez",
-       subtitle = "Entre junio y octubre de 2022\n",
+       subtitle = "Junio a octubre de 2022\n",
        y = "Número de homicidios\n",
        x = "\nMes",
        caption = "Fuente: Elaboración propia con base en el Monitor-PPD (2022)")+

@@ -36,6 +36,12 @@ df_sonora <- df_monitor_amplio %>%
   filter(fecha_de_los_hechos >= "2022-06-01") %>% 
   filter(fecha_de_los_hechos <= "2022-08-31")
 
+df_sonora_hom <- df_sonora %>% 
+  select(municipio, fecha_de_los_hechos, numero_de_homicidios_total) %>% 
+  group_by(fecha_de_los_hechos) %>% 
+  summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
+
+
 # 3. Efectos de la detención----------------------------------------------------
 
 ## Antes de la detención-----
@@ -69,6 +75,12 @@ agresion_a <- df_ataque_antes %>%
 table(agresion_a$pertenece_a)
 table(agresion_a$herido_a_pertenece_a)
 
+count(unique(agresion_a$ataque_armado))
+
+count(agresion_a, ataque_armado, sort = T) 
+
+class(agresion_a$ataque_armado)
+
 # 2) Enfrentamiento  
 enfrentamiento_a <- df_ataque_antes %>% 
   filter(ataque_armado == "enfrentamiento")
@@ -89,6 +101,7 @@ table(grupos_a$alianza_del_gc)
 table(grupos_a$rival_del_gc)
 
 #### Homicidios--------------------------------------------------------------
+
 
 ##### Total de homicidios----
 # 1) Total homicidios - base general
@@ -337,15 +350,6 @@ df_desaparecidos_a2 <- df_sonora_antes %>%
   filter(numero_de_personas_privadas_de_su_libertad >= "1") %>% 
   group_by(fecha_de_los_hechos) %>% 
   summarise(total_desaparecidos = sum(numero_de_personas_privadas_de_su_libertad, na.rm = T))
-
-
-
-
-
-
-
-
-
 
 
 ## Después de la detención------------------------------------------------------

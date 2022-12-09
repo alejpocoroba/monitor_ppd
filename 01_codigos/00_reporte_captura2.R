@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          10 de noviembre de 2022
-# Última actualización:       25 de noviembre de 2022
+# Última actualización:       08 de diciembre de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2
@@ -52,7 +52,7 @@ m8 <- read_xlsx(paste_inp("Monitor_PPD_septiembre2.xlsx"))
 m9 <- read_xlsx(paste_inp("Monitor_PPD_octubre.xlsx"))
 
 # Noviembre
-m10 <- read_xlsx(paste_inp("Monitor2_PPD_noviembre25.11.xlsx"))
+m10 <- read_xlsx(paste_inp("Monitor_PPD_noviembre.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
 
@@ -174,7 +174,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 17/11/22 ")
+    caption = paste0("Fuente: Monitor-PPD al 08/12/22 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -215,7 +215,7 @@ for(i in 6:11) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 17/11/22 ")
+      caption = paste0("Fuente: Monitor-PPD al 08/12/22 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +
