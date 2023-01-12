@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          10 de noviembre de 2022
-# Última actualización:       08 de diciembre de 2022
+# Última actualización:       10 de enero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2
@@ -54,6 +54,9 @@ m9 <- read_xlsx(paste_inp("Monitor_PPD_octubre.xlsx"))
 # Noviembre
 m10 <- read_xlsx(paste_inp("Monitor_PPD_noviembre.xlsx"))
 
+# Diciembre
+m11 <- read_xlsx(paste_inp("Monitor_PPD_diciembre.xlsx"))
+
 # 2. Limpar datos --------------------------------------------------------------
 
 df_j <- m1 %>% 
@@ -91,8 +94,14 @@ df_microdatos1 <- df_pegada %>%
          "publicacion" = "x1_2_1_fecha_de_publicacion",
          "estado"      = "x1_3_3_estado")
 
-# m10 tiene estructura diferente
-df_microdatos2 <- m10 %>% # noviembre al 17/11
+# m10 y m11 tiene estructura diferente
+df_microdatos2 <- m10 %>% # noviembre
+  janitor::clean_names() %>% 
+  select("responsable" = "x1_1_responsable",
+         "publicacion" = "x1_2_1_fecha_de_publicacion",
+         "estado"      = "x1_3_3_estado")
+
+df_microdatos4 <- m11 %>% # diciembre 10/01/23
   janitor::clean_names() %>% 
   select("responsable" = "x1_1_responsable",
          "publicacion" = "x1_2_1_fecha_de_publicacion",
@@ -100,7 +109,8 @@ df_microdatos2 <- m10 %>% # noviembre al 17/11
 
 # Se pagan las bases de junio a noviembre 
 df_microdatos3 <-  df_microdatos1 %>% 
-  bind_rows(df_microdatos2)  %>% 
+  bind_rows(df_microdatos2)       %>% 
+  bind_rows(df_microdatos4)       %>%
   # modificaciones sobre fecha: mes
   mutate(mes = lubridate::month(publicacion)) %>% 
   mutate(
@@ -109,7 +119,7 @@ df_microdatos3 <-  df_microdatos1 %>%
 # 3. Cifras de captura ---------------------------------------------------
 ## Periodo junio a noviembre----
 # Total de observaciones 
-paste0("Número total de observaciones entre junio y noviembre de 2002: ", dim(df_microdatos3)[1])
+paste0("Número total de observaciones entre junio y diciembre de 2022: ", dim(df_microdatos3)[1])
 
 # Total de obsveraciones por mes
 table(df_microdatos3$mes)
@@ -161,7 +171,7 @@ df_data1 <- df_microdatos3 %>%
 # Por estado, publicación y responsable
 ggplot(
   # Datos
-  df_data1 %>% filter(publicacion>= as.Date("2022-06-01"), publicacion<= as.Date("2022-11-30")), 
+  df_data1 %>% filter(publicacion>= as.Date("2022-06-01"), publicacion<= as.Date("2022-12-31")), 
   # Coordenadas 
   aes(x = publicacion, y = total, fill = responsable)) +
   facet_wrap(~estado, ncol = 8) +
@@ -169,12 +179,12 @@ ggplot(
   geom_col() +
   # Etiquetas
   labs(
-    title = "Total de observaciones capturadas para el Monitor PPD de junio a noviembre", 
+    title = "Total de observaciones capturadas para el Monitor PPD de junio a diciembre 2022", 
     subtitle = "Por estado, fecha de publicación y persona responsable", 
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 08/12/22 ")
+    caption = paste0("Fuente: Monitor-PPD al 10/01/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -189,7 +199,7 @@ ggsave(file = paste_fig("01_captura_general.png"),
 
 ## Captura desagregado----
 # Procesamiento 
-for(i in 6:11) {
+for(i in 6:12) {
   df_data2 <- df_microdatos3 %>% 
     filter(mes == i) %>% 
     group_by(publicacion, estado, responsable) %>% 
@@ -202,7 +212,7 @@ for(i in 6:11) {
 # Por día, mes, estado y responsable
   ggplot(
     # Datos
-    df_data2 %>% filter(publicacion>= as.Date("2022-06-01"), publicacion<= as.Date("2022-11-30")), 
+    df_data2 %>% filter(publicacion>= as.Date("2022-06-01"), publicacion<= as.Date("2022-12-31")), 
     # Coordenadas 
     aes(x = publicacion, y = total, fill = responsable)) +
     facet_wrap(~estado, ncol = 8) +
@@ -215,7 +225,7 @@ for(i in 6:11) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 08/12/22 ")
+      caption = paste0("Fuente: Monitor-PPD al 10/01/2023 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +

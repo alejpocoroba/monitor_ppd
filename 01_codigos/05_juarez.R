@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          08 de noviembre de 2022
-# Última actualización:       07 de diciembre de 2022
+# Última actualización:       11 de enero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -26,18 +26,24 @@ rm(list = ls ())
 paste_inp <- function(x){paste0("03_datos_limpios/", x)}
 paste_fig <- function(x){paste0("04_figuras/"      , x)}
 paste_out <- function(x){paste0("03_datos_limpios/", x)}
-
+paste_inp2 <- function(x){paste0("02_datos_crudos/" , x)}
 
 # 1. Cargar datos---------------------------------------------------------------
-load(paste_inp("df_monitor_amplio.Rdata"))
+load(paste_inp("df_monitor_amplio.Rdata")) # junio - octubre
+
+nov <- read_xlsx(paste_inp2("Monitor_PPD_noviembre.xlsx")) # noviembre
+dic <- read_xlsx(paste_inp2("Monitor_PPD_diciembre.xlsx")) # diciembre
 
 # 2. Limpieza de los datos------------------------------------------------------
 ## Datos de Chihuahua-----------------------------------------------------------
+
+#limpieza junio - octubre
 df_chi1 <- df_monitor_amplio %>% 
   filter(estado == "Chihuahua-08")
 
 # Limpieza en el nombre de Juárez
 v_juarez <- c("Juárez-07-048", "Juárez-16-046")
+V_arma   <- c("agresión", "arma de fuego", "arma de fuego; golpes")
 
 df_chi2 <- df_chi1 %>% 
   mutate(municipio = case_when(municipio %in% v_juarez  ~ "Juárez-08-037",
@@ -52,6 +58,7 @@ df_juarez1 <- df_chi2 %>%
   select(-c("datos_generales":"fecha_de_publicacion", 
             "nombre_de_la_fuente":"hechos",
             "pais":"municipio",
+            "numero_de_detenidos_as_total":"detenido_a_pertenece_a",
             "grupos_criminales":"grupos_criminales_gc",
             "actividades_delictivas": "muertos",
             "victimas", "detenidos_as", "ataque_armado_t", 
@@ -61,69 +68,150 @@ df_juarez1 <- df_chi2 %>%
             "fuerzas_de_seguridad", "politica_de_seguridad_y_de_drogas",
             "politica_de_drogas"))
 
+colnames(df_juarez1)
+
+# noviembre 
+df_juarez2 <- nov %>% 
+  janitor::clean_names() %>%
+  select("id"                           = "id",
+         "enlace"                       = "x1_2_2_enlace",
+         "titulo_de_la_nota"            = "x1_2_3_titulo_de_la_nota",
+         "estado"                       = "x1_3_3_estado",
+         "municipio"                    = "x1_3_4_municipio",
+         "fecha_de_los_hechos"          = "x1_3_1_fecha_de_los_hechos", 
+         "lugar"                        = "x1_3_5_lugar",
+         "nombre_del_grupo_criminal_gc" = "x5_1_3_nombre_del_grupo_criminal_gc",
+         "alianza_del_gc"               = "x5_1_4_alianza_del_gc",
+         "rival_del_gc"                 = "x5_1_5_rival_del_gc",
+         "numero_de_homicidios_total"   = "x2_2_1_numero_de_homicidios_total",
+         "numero_de_homicidios_hombre"  = "x2_2_2_numero_de_homicidios_hombre",
+         "numero_de_homicidios_mujer"   = "x2_2_3_numero_de_homicidios_mujer",
+         "pertenece_a"                  = "x2_2_4_pertenece_a_ocupacion",
+         "cuerpo_s_localizado_s"        = "x2_2_5_cuerpo_s_localizado_s_restos_humanos",
+         "numero_de_heridos_as_total"   = "x2_3_1_numero_de_heridos_as_total",
+         "numero_de_heridos_hombres"    = "x2_3_2_numero_de_heridos_hombres",
+         "numero_de_heridas_mujeres"    = "x2_3_3_numero_de_heridas_mujeres",
+         "herido_a_pertenece_a"         = "x3_1_4_detenido_a_pertenece_a_ocupacion",
+         "ataque_armado"                = "x2_1_1_ataque",
+         "privacion_de_la_libertad"     = "x4_1_2_privacion_de_la_libertad",
+         "narcomensaje"                 = "x5_1_1_narcomensaje",
+         "contenido_del_narcomensaje"   = "x5_1_2_contenido_del_narcomensaje",
+         "actividades_ilicitas"         = "x4_1_1_actividades_delictivas",
+         "autoridad"                    = "x6_1_autoridad",
+         "tipo_de_actividad"            = "x6_2_tipo_de_actividad_de_la_autoridad",
+         "politica_de_seguridad"        = "x7_1_politica_de_seguridad") %>% 
+  filter(estado == "Chihuahua-08") %>% 
+  mutate(municipio = case_when(municipio %in% v_juarez  ~ "Juárez-08-037",
+                               municipio == municipio ~ municipio)) %>% 
+  filter(municipio == "Juárez-08-037") %>% 
+  select(-c("estado", "municipio"))
+
+# diciembre
+df_juarez3 <- dic %>% 
+  janitor::clean_names() %>%
+  select("id"                           = "id",
+         "enlace"                       = "x1_2_2_enlace",
+         "titulo_de_la_nota"            = "x1_2_3_titulo_de_la_nota",
+         "estado"                       = "x1_3_3_estado",
+         "municipio"                    = "x1_3_4_municipio",
+         "fecha_de_los_hechos"          = "x1_3_1_fecha_de_los_hechos", 
+         "lugar"                        = "x1_3_5_lugar",
+         "nombre_del_grupo_criminal_gc" = "x5_1_3_nombre_del_grupo_criminal_gc",
+         "alianza_del_gc"               = "x5_1_4_alianza_del_gc",
+         "rival_del_gc"                 = "x5_1_5_rival_del_gc",
+         "numero_de_homicidios_total"   = "x2_2_1_numero_de_homicidios_total",
+         "numero_de_homicidios_hombre"  = "x2_2_2_numero_de_homicidios_hombre",
+         "numero_de_homicidios_mujer"   = "x2_2_3_numero_de_homicidios_mujer",
+         "pertenece_a"                  = "x2_2_4_pertenece_a_ocupacion",
+         "cuerpo_s_localizado_s"        = "x2_2_5_cuerpo_s_localizado_s_restos_humanos",
+         "numero_de_heridos_as_total"   = "x2_3_1_numero_de_heridos_as_total",
+         "numero_de_heridos_hombres"    = "x2_3_2_numero_de_heridos_hombres",
+         "numero_de_heridas_mujeres"    = "x2_3_3_numero_de_heridas_mujeres",
+         "herido_a_pertenece_a"         = "x3_1_4_detenido_a_pertenece_a_ocupacion",
+         "ataque_armado"                = "x2_1_1_ataque",
+         "privacion_de_la_libertad"     = "x4_1_2_privacion_de_la_libertad",
+         "narcomensaje"                 = "x5_1_1_narcomensaje",
+         "contenido_del_narcomensaje"   = "x5_1_2_contenido_del_narcomensaje",
+         "actividades_ilicitas"         = "x4_1_1_actividades_delictivas",
+         "autoridad"                    = "x6_1_autoridad",
+         "tipo_de_actividad"            = "x6_2_tipo_de_actividad_de_la_autoridad",
+         "politica_de_seguridad"        = "x7_1_politica_de_seguridad") %>% 
+  filter(estado == "Chihuahua-08") %>% 
+  mutate(municipio = case_when(municipio %in% v_juarez  ~ "Juárez-08-037",
+                               municipio == municipio ~ municipio)) %>% 
+  filter(municipio == "Juárez-08-037") %>% 
+  select(-c("estado", "municipio"))
+
+df_juarez4 <- df_juarez2 %>% 
+  bind_rows(df_juarez3)
+
+# variables de interés: grupos, homicidio, cuerpos, herido, ataque 
+a <- df_juarez1 %>% 
+  select(id:ataque_armado, politica_de_seguridad)
+
+b <- df_juarez4 %>% 
+  select(id:ataque_armado, politica_de_seguridad)
+
+df_juarez5 <- a %>% 
+  bind_rows(b) %>% 
+  filter(politica_de_seguridad == "FALSE") %>% 
+  mutate(ataque_armado = 
+           case_when(ataque_armado %in% V_arma  ~ "agresión",
+                                   ataque_armado == ataque_armado ~ ataque_armado)) 
+
 # Guardar base de Juárez
-openxlsx::write.xlsx(df_juarez1, 
+openxlsx::write.xlsx(df_juarez5, 
                      file = paste_out("juarez.xlsx"), overwrite = T)
 
 #### Generalidades-------------------------------------------------------------
 
-# Chihuhua - política de seguridad 
-chi_seg <- df_chi2 %>% 
-  filter(fecha_de_los_hechos >= "2022-06-01") %>% 
-  filter(fecha_de_los_hechos <= "2022-10-31") %>% 
-  select(enlace, titulo_de_la_nota, politica_de_seguridad, municipio) %>% 
-  filter(politica_de_seguridad == "TRUE")
-
 # Totales
-sum(df_juarez1$numero_de_homicidios_total, na.rm = T) # de homicidios: 404
-sum(df_juarez1$numero_de_heridos_as_total, na.rm = T) # de heridos: 138
+sum(df_juarez5$numero_de_homicidios_total, na.rm = T) # de homicidios: 528
+sum(df_juarez5$numero_de_heridos_as_total, na.rm = T) # de heridos: 203
 
-sum(df_juarez1$numero_de_homicidios_hombre, na.rm = T)
-sum(df_juarez1$numero_de_homicidios_mujer, na.rm = T)
+sum(df_juarez5$numero_de_homicidios_hombre, na.rm = T)
+sum(df_juarez5$numero_de_homicidios_mujer, na.rm = T)
 
-sum(df_juarez1$numero_de_heridos_hombres, na.rm = T)
-sum(df_juarez1$numero_de_heridas_mujeres, na.rm = T)
-
-
+sum(df_juarez5$numero_de_heridos_hombres, na.rm = T)
+sum(df_juarez5$numero_de_heridas_mujeres, na.rm = T)
 
 # Ataque armado 
-unique(df_juarez1$ataque_armado)
-table(df_juarez1$ataque_armado) # agre 210; enfren: 4; blanca: 7
+unique(df_juarez5$ataque_armado)
+table(df_juarez5$ataque_armado) # agre 315; enfren: 6; arma blanca 13
 
 # 1) Agresión  
-agresion <- df_juarez1 %>% 
+agresion <- df_juarez5 %>% 
   filter(ataque_armado == "agresión")
 table(agresion$pertenece_a) 
 table(agresion$herido_a_pertenece_a) 
 
 # 2) Enfrentamiento  
-enfrentamiento <- df_juarez1 %>% 
+enfrentamiento <- df_juarez5 %>% 
   filter(ataque_armado == "enfrentamiento")
 table(enfrentamiento$pertenece_a)
 table(enfrentamiento$herido_a_pertenece_a) 
 
 # Presencia criminal 
-grupos <- df_juarez1 %>% 
+grupos <- df_juarez5 %>% 
   select(fecha_de_los_hechos, 
          nombre_del_grupo_criminal_gc, alianza_del_gc, rival_del_gc,
          numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s,
          numero_de_heridos_as_total, herido_a_pertenece_a,
-         ataque_armado,
-         autoridad_civil, autoridad_militar)
+         ataque_armado)
 
 
 #### Homicidios----------------------------------------------------------------
 
 ##### Total de homicidios----
 # 1) Total homicidios - base general
-df_homicidios_d1 <- df_juarez1 %>% 
+df_homicidios_d1 <- df_juarez5 %>% 
   select(fecha_de_los_hechos, numero_de_homicidios_total) %>%
   filter(numero_de_homicidios_total >= "1") %>% 
   group_by(fecha_de_los_hechos) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_homicidios_d1)
 
-# Total: 404 
+# Total: 528 
 sum(df_homicidios_d1$total_homicidios, na.rm = T)
 
 mean(df_homicidios_d1$total_homicidios)
@@ -132,7 +220,7 @@ mean(df_homicidios_d1$total_homicidios)
 ###### Cuerpos localizados -----
 
 # 1) Homicidios - cuerpos localizados: general
-df_cuerpos_d1 <- df_juarez1 %>% 
+df_cuerpos_d1 <- df_juarez5 %>% 
   select(fecha_de_los_hechos, numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s) %>% 
   filter(cuerpo_s_localizado_s == "TRUE") %>% 
   group_by(fecha_de_los_hechos) %>% 
@@ -140,12 +228,12 @@ df_cuerpos_d1 <- df_juarez1 %>%
 view(df_cuerpos_d1)
 
 # Total 
-sum(df_cuerpos_d1$total_homicidios, na.rm = T) # cuerpos localizados: 176
+sum(df_cuerpos_d1$total_homicidios, na.rm = T) # cuerpos localizados: 223
 
 ###### Agresión -----
 
 # 1) Homicidios - agresión: en general 
-df_agre_d1 <- df_juarez1 %>% 
+df_agre_d1 <- df_juarez5 %>% 
   select(fecha_de_los_hechos, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
@@ -154,7 +242,7 @@ df_agre_d1 <- df_juarez1 %>%
   group_by(fecha_de_los_hechos) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
-sum(df_agre_d1$total_homicidios) # homicidios por agresión: 199
+sum(df_agre_d1$total_homicidios) # homicidios por agresión: 271
 
 mean(df_agre_d1$total_homicidios)
 
@@ -380,16 +468,18 @@ fecha <- df_homicidios_d1 %>%
     mes == "7"  ~ "Julio",
     mes == "8"  ~ "Agosto",
     mes == "9"  ~ "Septiembre",
-    mes == "10" ~ "Octubre")) %>% 
+    mes == "10" ~ "Octubre",
+    mes == "11" ~ "Noviembre",
+    mes == "12" ~ "Diciembre")) %>% 
   mutate(mes = factor(
-    mes, levels = c("Junio", "Julio", "Agosto", "Septiembre", "Octubre")))
+    mes, levels = c("Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")))
 
 ggplot(fecha, aes(x = mes, y = mes_total, group = 1)) +
   geom_point()+
   geom_line() +
   ggrepel::geom_text_repel(aes(label = mes_total), hjust = -0.1, color = "black") +
   labs(title = "Homicidios violentos en Ciudad Juárez",
-       subtitle = "Junio a octubre de 2022\n",
+       subtitle = "De junio a diciembre de 2022\n",
        y = "Número de homicidios\n",
        x = "\nMes",
        caption = "Fuente: Elaboración propia con base en el Monitor-PPD (2022)")+
