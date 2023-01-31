@@ -8,6 +8,9 @@ output:
   rmarkdown::pdf_document:
     toc: true 
     latex_engine: xelatex
+    # includes:
+    #   in_header: header.tex
+    # 
 ---
 
 ```{r setup, include=FALSE}
@@ -116,8 +119,9 @@ ggplot(
        subtitle = "De julio, agosto y septiembre del 2022\n",
        fill = "Número de homicidios", 
        caption = "Fuente: Monitor-PPD (2022)") +
-  scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
-  theme(axis.line = element_blank(), 
+  # scale_fill_gradient(low = "white", high = "red", na.value = NA) +
+   scale_fill_gradient(low = "white", high = "#d62828", na.value = "grey") +
+    theme(axis.line = element_blank(), 
         axis.ticks = element_blank(), 
         axis.text = element_blank(), 
         axis.title = element_blank(),
@@ -431,7 +435,7 @@ df_gc_full <- df_gc6 %>%
 
 estados_faltan <- data.frame("estado" = c("Campeche-04", "Coahuila-05", "Colima-06", "Durango-10", "Estado de México-15", 
                                           "Oaxaca-20", "Querétaro-22", "Tabasco-27", "Tlaxcala-29", "Yucatán-31"),
-                             "total_grupos" =  c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+                             "total_grupos" =  NA_real_)
 # figura: mapa 
 # procesamiento 
 df_grupos <- df_gc_full %>% 
@@ -463,7 +467,8 @@ ggplot(
        subtitle = "Entre julio, agosto y septiembre del 2022\n",
        fill = "Número", 
        caption = "Fuente: Monitor-PPD (2022)") +
-   scale_fill_viridis(option="plasma", breaks = c(1, 5, 10)) +
+   # scale_fill_viridis(option="plasma", breaks = c(1, 5, 10)) +
+     scale_fill_gradient(low = "#7FCCA1", high = "#193F29", na.value = "white", breaks = c(1, 5, 10)) +
   theme(axis.line = element_blank(), 
         axis.ticks = element_blank(), 
         axis.text = element_blank(), 
@@ -484,8 +489,9 @@ df_desparecidos <- df_crudo %>%
   select(estado, desaparecidos_n) %>% 
   group_by(estado) %>% 
   summarize(total_desparecidos = sum(desaparecidos_n, na.rm = T)) %>% 
-  mutate(region = str_sub(estado, -2, -1)) %>% 
-  left_join(mxstate.map, by = "region")
+  mutate(region = str_sub(estado, -2, -1), 
+         total_desparecidos = if_else(total_desparecidos == 0, NA_real_, total_desparecidos)) %>% 
+    left_join(mxstate.map, by = "region")
 
 
 #  Figura 
@@ -502,8 +508,9 @@ ggplot(
        subtitle = "Entre junio, julio y agosto del 2022\n",
        fill = "Número", 
        caption = "Fuente: Monitor-PPD (2022)") +
-  scale_fill_gradient(low=cols[1],high=cols[2]) +
-  theme(axis.line = element_blank(), 
+  # scale_fill_gradient(low=cols[1],high=cols[2]) +
+       scale_fill_gradient(low = "#B6C5CE", high = "#182025", na.value = "white") +
+theme(axis.line = element_blank(), 
         axis.ticks = element_blank(), 
         axis.text = element_blank(), 
         axis.title = element_blank(),
@@ -538,17 +545,57 @@ df_autoridad <- df_crudo %>%
   summarise_all(~ sum(., na.rm = T)) %>% 
   drop_na(estado)
 
-# Total = todas las intervenciones de un tipo de autoridad (militar, civil) país
-t_tip_auto <- df_autoridad %>% 
-  mutate(militar = militar/sum(militar)) %>% 
-  mutate(civil   = civil/sum(civil))     %>% 
-  mutate(ambas   = ambas/sum(ambas))     %>% 
-  mutate(militar = scales::percent(militar, accuracy = 0.1), 
-         civil   = scales::percent(civil, accuracy = 0.1),
-         ambas   = scales::percent(ambas, accuracy = 0.1)) %>% 
-  mutate(estado = str_sub(estado, 1, -4))
+# # Total = todas las intervenciones de un tipo de autoridad (militar, civil) país
+# t_tip_auto <- df_autoridad %>% 
+#   mutate(militar = militar/sum(militar)) %>% 
+#   mutate(civil   = civil/sum(civil))     %>% 
+#   mutate(ambas   = ambas/sum(ambas))     %>% 
+#   mutate(militar = scales::percent(militar, accuracy = 0.1), 
+#          civil   = scales::percent(civil, accuracy = 0.1),
+#          ambas   = scales::percent(ambas, accuracy = 0.1)) %>% 
+#   mutate(estado = str_sub(estado, 1, -4))
 
-knitr::kable(t_tip_auto)
+# knitr::kable(t_tip_auto)
+
+df_plot <- df_autoridad %>% 
+  mutate(
+    militar = militar/sum(militar), 
+    civil   = civil/sum(civil), 
+    ambas   = ambas/sum(ambas), 
+  ) %>% 
+  pivot_longer(cols = -estado, 
+               names_to = "tipo", 
+               values_to = "total") %>% 
+  mutate(
+    tipo = str_to_sentence(tipo), 
+    tipo = factor(tipo, levels = c("Civil", "Militar", "Ambas"))
+  )
+```
+
+```{r Plot1, fig.height=7, fig.width=6}
+
+ggplot(
+  # Datos
+  df_plot, 
+  # Coordenadas
+  aes(x = total, y = reorder(estado, total), fill = tipo)) +
+  facet_wrap(~tipo) +
+  # Geoms 
+  geom_col(width = 0.75) +
+  # Etiquetas
+  labs(
+    title = "Distribución de intervenciones de la autoridad",
+    subtitle = "Por tipo de autoridad", 
+    x = "", 
+    y = "", 
+    fill = "Autoridad"
+  ) +
+  # Escalas 
+  scale_x_continuous(labels = scales::percent_format()) +
+  # Tema
+  theme_minimal() +
+  guides(fill = "none")
+  
 ```
 
 \newpage
