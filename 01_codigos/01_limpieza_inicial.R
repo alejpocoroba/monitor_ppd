@@ -70,9 +70,7 @@ m5 <- m5 %>%
 m6 <- m6 %>%
   filter(!is.na(Id)) 
 
-## 2.1. Pegar bases ------------------------------------------------------------
-### 2.1.2 Verificar los nombres de las bases------------------------------------
-### Base m1 tiene nombres de variables distintas al resto de las bases 
+### 2.1 Verificar los nombres de las bases------------------------------------
 
 colnames(df_j)
 colnames(m2)
@@ -87,7 +85,7 @@ table(nom_ms)
 colnames(df_j)[!nom_ms]
 colnames(m2)[!nom_ms2]
 
-### 2.1.2 Pegar todas las bases-------------------------------------------------
+### 2.2 Pegar todas las bases-------------------------------------------------
 df_1 <- df_j %>% # base junio 1 
   bind_rows(m2) %>% # base junio 2
   bind_rows(m3) %>% # base julio
@@ -98,77 +96,76 @@ df_1 <- df_j %>% # base junio 1
   bind_rows(m8) %>% # base septiembre 2
   bind_rows(m9)     # base octubre 
 
-## 2.2. Homologación de variables-----------------------------------------------
+## 2.3. Homologación de variables-----------------------------------------------
 
 df_2 <- df_1 %>% 
   janitor::clean_names() %>% 
-  rename("datos_generales"      = "x1_datos_generales",
-         "responsable"          = "x1_1_responsable",
-         "sobre_la_nota"        = "x1_2_sobre_la_nota",
-         "fecha_de_publicacion" = "x1_2_1_fecha_de_publicacion",
-         "enlace"               = "x1_2_2_enlace",
-         "titulo_de_la_nota"    = "x1_2_3_titulo_de_la_nota",
-         "nombre_de_la_fuente"  = "x1_2_4_nombre_de_la_fuente",
-         "nota_complementaria_duplicada"= "x1_2_5_nota_complementaria_duplicada",
-         "enlaces_de_notas_complementaria_duplicada" = "x1_2_6_enlaces_de_notas_complementaria_duplicada",
-         "hechos"               = "x1_3_hechos", 
-         "fecha_de_los_hechos"  = "x1_3_1_fecha_de_los_hechos",
-         "pais"                 = "x1_3_2_pais",
-         "estado"               = "x1_3_3_estado",
-         "municipio"            = "x1_3_4_municipio",
-         "lugar"                = "x1_3_5_lugar",
-         "grupos_criminales" = "x2_grupos_criminales",
-         "grupos_criminales_gc" = "x2_1_grupos_criminales_gc", 
-         "nombre_del_grupo_criminal_gc" = "x2_1_1_nombre_del_grupo_criminal_gc",
-         "alianza_del_gc"       = "x2_1_2_alianza_del_gc",
-         "rival_del_gc"         =  "x2_1_3_rival_del_gc",
-         "actividades_delictivas" = "x3_actividades_delictivas",
-         "muertos"                = "x3_1_muertos",
-         "numero_de_homicidios_total" = "x3_1_1_numero_de_homicidios_total",
-         "numero_de_homicidios_hombre"= "x3_1_2_numero_de_homicidios_hombre",
-         "numero_de_homicidios_mujer" = "x3_1_3_numero_de_homicidios_mujer",
-         "pertenece_a" = "x3_1_4_pertenece_a",
-         "cuerpo_s_localizado_s" = "x3_1_5_cuerpo_s_localizado_s",
-         "victimas" = "x3_2_victimas",
-         "numero_de_heridos_as_total" = "x3_2_1_numero_de_heridos_as_total",
-         "numero_de_heridos_hombres" = "x3_2_2_numero_de_heridos_hombres",
-         "numero_de_heridas_mujeres" = "x3_2_3_numero_de_heridas_mujeres",
-         "herido_a_pertenece_a" = "x3_2_4_herido_a_pertenece_a",
-         "detenidos_as" = "x3_3_detenidos_as",
-         "numero_de_detenidos_as_total" = "x3_3_1_numero_de_detenidos_as_total",
-         "numero_de_detenidos_hombres" = "x3_3_2_numero_de_detenidos_hombres",
-         "numero_de_detenidas_mujeres" = "x3_3_3_numero_de_detenidas_mujeres",
-         "detenido_a_pertenece_a" = "x3_3_4_detenido_a_pertenece_a",
-         "ataque_armado_t" = "x3_4_ataque_armado", 
-         "ataque_armado" = "x3_4_1_ataque_armado",
-         "otras_actividades_delictivas" = "x3_5_otras_actividades_delictivas",
-         "trafico" = "x3_5_1_trafico",
-         "privacion_de_la_libertad" = "x3_5_2_privacion_de_la_libertad",
+  rename("datos_generales"                            = "x1_datos_generales",
+         "responsable"                                = "x1_1_responsable",
+         "sobre_la_nota"                              = "x1_2_sobre_la_nota",
+         "fecha_de_publicacion"                       = "x1_2_1_fecha_de_publicacion",
+         "enlace"                                     = "x1_2_2_enlace",
+         "titulo_de_la_nota"                          = "x1_2_3_titulo_de_la_nota",
+         "nombre_de_la_fuente"                        = "x1_2_4_nombre_de_la_fuente",
+         "nota_complementaria_duplicada"              = "x1_2_5_nota_complementaria_duplicada",
+         "enlaces_de_notas_complementaria_duplicada"  = "x1_2_6_enlaces_de_notas_complementaria_duplicada",
+         "hechos"                                     = "x1_3_hechos", 
+         "fecha_de_los_hechos"                        = "x1_3_1_fecha_de_los_hechos",
+         "pais"                                       = "x1_3_2_pais",
+         "estado"                                     = "x1_3_3_estado",
+         "municipio"                                  = "x1_3_4_municipio",
+         "lugar"                                      = "x1_3_5_lugar",
+         "grupos_criminales"                          = "x2_grupos_criminales",
+         "grupos_criminales_gc"                       = "x2_1_grupos_criminales_gc", 
+         "nombre_del_grupo_criminal_gc"               = "x2_1_1_nombre_del_grupo_criminal_gc",
+         "alianza_del_gc"                             = "x2_1_2_alianza_del_gc",
+         "rival_del_gc"                               =  "x2_1_3_rival_del_gc",
+         "actividades_delictivas"                     = "x3_actividades_delictivas",
+         "muertos"                                    = "x3_1_muertos",
+         "numero_de_homicidios_total"                 = "x3_1_1_numero_de_homicidios_total",
+         "numero_de_homicidios_hombre"                = "x3_1_2_numero_de_homicidios_hombre",
+         "numero_de_homicidios_mujer"                 = "x3_1_3_numero_de_homicidios_mujer",
+         "pertenece_a"                                = "x3_1_4_pertenece_a",
+         "cuerpo_s_localizado_s"                      = "x3_1_5_cuerpo_s_localizado_s",
+         "victimas"                                   = "x3_2_victimas",
+         "numero_de_heridos_as_total"                 = "x3_2_1_numero_de_heridos_as_total",
+         "numero_de_heridos_hombres"                  = "x3_2_2_numero_de_heridos_hombres",
+         "numero_de_heridas_mujeres"                  = "x3_2_3_numero_de_heridas_mujeres",
+         "herido_a_pertenece_a"                       = "x3_2_4_herido_a_pertenece_a",
+         "detenidos_as"                               = "x3_3_detenidos_as",
+         "numero_de_detenidos_as_total"               = "x3_3_1_numero_de_detenidos_as_total",
+         "numero_de_detenidos_hombres"                = "x3_3_2_numero_de_detenidos_hombres",
+         "numero_de_detenidas_mujeres"                = "x3_3_3_numero_de_detenidas_mujeres",
+         "detenido_a_pertenece_a"                     = "x3_3_4_detenido_a_pertenece_a",
+         "ataque_armado_t"                            = "x3_4_ataque_armado", 
+         "ataque_armado"                              = "x3_4_1_ataque_armado",
+         "otras_actividades_delictivas"               = "x3_5_otras_actividades_delictivas",
+         "trafico"                                    = "x3_5_1_trafico",
+         "privacion_de_la_libertad"                   = "x3_5_2_privacion_de_la_libertad",
          "numero_de_personas_privadas_de_su_libertad" = "x3_5_2_1_numero_de_personas_privadas_de_su_libertad",
-         "narcomensaje" = "x3_5_3_narcomensaje",
-         "contenido_del_narcomensaje" = "x3_5_3_1_contenido_del_narcomensaje",
-         "otras_actividades_ilicitas" = "x3_5_4_otras_actividades_ilicitas",
-         "presencia_internacional" = "x3_5_5_presencia_internacional",
-         "presencia_no_violenta_t" = "x3_6_presencia_no_violenta", 
-         "presencia_no_violenta" = "x3_6_1_presencia_no_violenta",
-         "instituciones_de_seguridad" = "x4_instituciones_de_seguridad",
-         "fuerzas_armadas" = "x4_1_fuerzas_armadas", 
-         "autoridad_militar" = "x4_1_1_autoridad_militar",
-         "tipo_de_actividad_militar" = "x4_1_2_tipo_de_actividad_militar",
-         "fuerzas_de_seguridad" = "x4_2_fuerzas_de_seguridad",
-         "autoridad_civil" = "x4_2_1_autoridad_civil",
-         "tipo_de_actividad_civil" = "x4_2_2_tipo_de_actividad_civil",
-         "politica_de_seguridad_y_de_drogas" = "x5_politica_de_seguridad_y_de_drogas",
-         "politica_de_seguridad" = "x5_1_politica_de_seguridad",
-         "politica_de_drogas" = "x5_2_politica_de_drogas")  %>% 
+         "narcomensaje"                               = "x3_5_3_narcomensaje",
+         "contenido_del_narcomensaje"                 = "x3_5_3_1_contenido_del_narcomensaje",
+         "otras_actividades_ilicitas"                 = "x3_5_4_otras_actividades_ilicitas",
+         "presencia_internacional"                    = "x3_5_5_presencia_internacional",
+         "presencia_no_violenta_t"                    = "x3_6_presencia_no_violenta", 
+         "presencia_no_violenta"                      = "x3_6_1_presencia_no_violenta",
+         "instituciones_de_seguridad"                 = "x4_instituciones_de_seguridad",
+         "fuerzas_armadas"                            = "x4_1_fuerzas_armadas", 
+         "autoridad_militar"                          = "x4_1_1_autoridad_militar",
+         "tipo_de_actividad_militar"                  = "x4_1_2_tipo_de_actividad_militar",
+         "fuerzas_de_seguridad"                       = "x4_2_fuerzas_de_seguridad",
+         "autoridad_civil"                            = "x4_2_1_autoridad_civil",
+         "tipo_de_actividad_civil"                    = "x4_2_2_tipo_de_actividad_civil",
+         "politica_de_seguridad_y_de_drogas"          = "x5_politica_de_seguridad_y_de_drogas",
+         "politica_de_seguridad"                      = "x5_1_politica_de_seguridad",
+         "politica_de_drogas"                         = "x5_2_politica_de_drogas")  %>% 
   # Agregar variable de mes para facilitar filtros de fechas 
   mutate(mes = lubridate::month(fecha_de_publicacion, label = TRUE))
 
-
-## 2.3. Filtrar periodo de interés ---------------------------------------------
+## 2.4. Filtrar periodo de interés ---------------------------------------------
 
 # # Explorar variable de fecha de publicación 
-# sum(is.na(df_2$fecha_de_publicacion)) # Hay 1 NAs
+# sum(is.na(df_2$fecha_de_publicacion)) # Hay 1 NAs - colum vacía
 # table(df_2$mes) # Distribución por mes 
 # 
 # # ---- Antes del periodo de interés 
@@ -232,9 +229,7 @@ View(table(df_monitor_amplio$id)) # Solo hay una instancia donde se repita
 # 4. Guardar base sin modificar ------------------------------------------------
 
 # ---- Guardar base 
-openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
-save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
+openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("monitor_jun_oct.xlsx"), overwrite = T)
+save(df_monitor_amplio, file = paste_out("monitor_jun_oct.Rdata"))
 
 # FIN. ------------------------------------------------------------------------- 
-                      
-
