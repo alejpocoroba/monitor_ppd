@@ -161,7 +161,7 @@ df_2 <- df_1 %>%
          "politica_de_seguridad" = "x5_1_politica_de_seguridad",
          "politica_de_drogas" = "x5_2_politica_de_drogas") 
 
-sum(is.na(df_2$fecha_de_publicacion)) # Hay 3 NAs
+sum(is.na(df_2$fecha_de_publicacion)) # Hay 1 NAs
 
 # 3. Guardar base sin modificar-----------------------
 df_antes1 <- df_2 %>% # notas antes de 01/06
