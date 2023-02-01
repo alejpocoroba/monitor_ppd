@@ -193,11 +193,11 @@ df_monitor_periodo <- df_2 %>%
 # Ver meses incluidos en la base: 
 table(df_monitor_periodo$mes)
 
-# Ver que las dimensiones de las baes sean consistentes a través de los periodos 
-dim(df_2)
-dim(df_antes)
-dim(df_monitor_periodo)
-dim(df_despues)
+# # Ver que las dimensiones de las baes sean consistentes a través de los periodos 
+# dim(df_2)
+# dim(df_antes)
+# dim(df_monitor_periodo)
+# dim(df_despues)
 
 ## 3.2. IDs --------------------------------------------------------------------
 
@@ -216,10 +216,20 @@ v_ids <- unique(df_monitor_periodo$id) # Lista de IDs en la base
 60 %in% v_ids # Por ejemplo, el ID 60 sí está presente
 63 %in% v_ids # El ID 63 no está presente
 
+# Adicional a este error, hay que notar que en la base procesada por Monse Lara
+# y la Dra. Atuesta, la nota fue renombrada como 99. Dado que en esta base sí 
+# hay un ID 99, la nota con ID 99 pasara a ser ID 63 y una de las notas 
+# repetidas con ID 7592 pasará a ser ID 99, para que coincida con la base 
+# de la Dra. Atuesta. 
+
 
 # ---- Cambiamos el ID de una de las observaciones con ID repetido 
 df_monitor_amplio <- df_monitor_periodo %>% 
-  mutate(id = if_else(id == 7592 & mes == "jun", 63, id))
+  mutate(
+    # Variable con ID 99 asignar ID 63
+    id = if_else(id == 99, 63, id),
+    # Variable repetida con ID 7592, asignar ID 99
+    id = if_else(id == 7592 & mes == "sep", 99, id)) 
 
 # ---- Repetir filtros de calidad
 
@@ -228,8 +238,12 @@ View(table(df_monitor_amplio$id)) # Solo hay una instancia donde se repita
 
 # 4. Guardar base sin modificar ------------------------------------------------
 
+# Renombrar 
+monitor_jun_oct <- df_monitor_amplio
+
 # ---- Guardar base 
-openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("monitor_jun_oct.xlsx"), overwrite = T)
-save(df_monitor_amplio, file = paste_out("monitor_jun_oct.Rdata"))
+openxlsx::write.xlsx(monitor_jun_oct, file = paste_out("monitor_jun_oct.xlsx"), overwrite = T)
+
+save(monitor_jun_oct, file = paste_out("monitor_jun_oct.Rdata"))
 
 # FIN. ------------------------------------------------------------------------- 
