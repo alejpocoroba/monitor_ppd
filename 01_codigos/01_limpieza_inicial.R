@@ -99,6 +99,7 @@ df_1 <- df_j %>% # base junio 1
   bind_rows(m9)     # base octubre 
 
 ## 2.2. Homologación de variables-----------------------------------------------
+
 df_2 <- df_1 %>% 
   janitor::clean_names() %>% 
   rename("datos_generales"      = "x1_datos_generales",
@@ -164,49 +165,76 @@ df_2 <- df_1 %>%
   mutate(mes = lubridate::month(fecha_de_publicacion, label = TRUE))
 
 
-# Filtros de calidad 
-sum(is.na(df_2$fecha_de_publicacion)) # Hay 3 NAs
-table(df_2$mes) # Distribución por mes 
+## 2.3. Filtrar periodo de interés ---------------------------------------------
 
-
-
-# 3. Guardar base sin modificar ------------------------------------------------
-
-table(df_2$mes)
-
-# ---- Antes del periodo de interés 
-df_antes <- df_2 %>% # notas antes de 01/06
-  filter(mes < "jun") # Todo antes de junio: 121 notas
-
-table(df_antes$mes)
-
-# ---- Después del periodo de interés
-df_despues <- df_2 %>% # notas después de octubre: 8 notas
-  filter(mes > "oct") # Todo antes de junio: 121 notas
-
-table(df_despues$mes)
+# # Explorar variable de fecha de publicación 
+# sum(is.na(df_2$fecha_de_publicacion)) # Hay 1 NAs
+# table(df_2$mes) # Distribución por mes 
+# 
+# # ---- Antes del periodo de interés 
+# df_antes <- df_2 %>% # notas antes de 01/06
+#   filter(mes < "jun") # Todo antes de junio: 121 notas
+# 
+# table(df_antes$mes)
+# 
+# # ---- Después del periodo de interés
+# df_despues <- df_2 %>% # notas después de octubre: 8 notas
+#   filter(mes > "oct") # Todo antes de junio: 121 notas
+# 
+# table(df_despues$mes)
 
 # ----- Periodo de interés
-df_monitor_amplio <- df_2 %>% 
+df_monitor_periodo <- df_2 %>% 
   # Dejar todo lo que sea posterior a mayo y previo a noviembre
   filter(mes > "may" & mes < "nov")  
 
 
-# ---- Filtros de calidad 
+# 3. Filtros de calidad --------------------------------------------------------
+
+## 3.1. Temporalidad -----------------------------------------------------------
 
 # Ver meses incluidos en la base: 
-table(df_monitor_amplio$mes)
+table(df_monitor_periodo$mes)
 
-# Ver que las dimensiones de las baes sean consistenten 
+# Ver que las dimensiones de las baes sean consistentes a través de los periodos 
 dim(df_2)
 dim(df_antes)
-dim(df_monitor_amplio)
+dim(df_monitor_periodo)
 dim(df_despues)
+
+## 3.2. IDs --------------------------------------------------------------------
+
+# ---- Exploración de ID
+# Ver frecuencia de los IDs (cada ID debería aparecer solo una vez)
+View(table(df_monitor_periodo$id)) # Solo hay una instancia donde se repita
+
+# Ver observaciones donde el ID se repite 
+df_error <- df_monitor_periodo %>% 
+  filter(id == 7592) # Se comprueba que son dos observaciones distintas en contenido
+
+table(df_error$mes)
+
+# Se identificó que el ID 63 no está entre los IDs usados 
+v_ids <- unique(df_monitor_periodo$id) # Lista de IDs en la base
+60 %in% v_ids # Por ejemplo, el ID 60 sí está presente
+63 %in% v_ids # El ID 63 no está presente
+
+
+# ---- Cambiamos el ID de una de las observaciones con ID repetido 
+df_monitor_amplio <- df_monitor_periodo %>% 
+  mutate(id = if_else(id == 7592 & mes == "jun", 63, id))
+
+# ---- Repetir filtros de calidad
+
+View(table(df_monitor_amplio$id)) # Solo hay una instancia donde se repita
+
+
+# 4. Guardar base sin modificar ------------------------------------------------
 
 # ---- Guardar base 
 openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
 save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
 
-# FIN. -------------------------------------------------------------------------
+# FIN. ------------------------------------------------------------------------- 
                       
 
