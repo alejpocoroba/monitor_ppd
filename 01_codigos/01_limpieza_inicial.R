@@ -159,52 +159,54 @@ df_2 <- df_1 %>%
          "tipo_de_actividad_civil" = "x4_2_2_tipo_de_actividad_civil",
          "politica_de_seguridad_y_de_drogas" = "x5_politica_de_seguridad_y_de_drogas",
          "politica_de_seguridad" = "x5_1_politica_de_seguridad",
-         "politica_de_drogas" = "x5_2_politica_de_drogas") 
+         "politica_de_drogas" = "x5_2_politica_de_drogas")  %>% 
+  # Agregar variable de mes para facilitar filtros de fechas 
+  mutate(mes = lubridate::month(fecha_de_publicacion, label = TRUE))
 
-sum(is.na(df_2$fecha_de_publicacion)) # Hay 1 NAs
 
-# 3. Guardar base sin modificar-----------------------
-df_antes1 <- df_2 %>% # notas antes de 01/06
-  filter(fecha_de_publicacion >= '2022-01-01') %>% 
-  filter(fecha_de_publicacion <= '2022-05-31') 
+# Filtros de calidad 
+sum(is.na(df_2$fecha_de_publicacion)) # Hay 3 NAs
+table(df_2$mes) # Distribución por mes 
 
-df_antes2 <- df_2 %>% # notas después de 01/11 
-  filter(fecha_de_publicacion >= '2022-11-01') %>% 
-  filter(fecha_de_publicacion <= '2022-11-30') # 
 
+
+# 3. Guardar base sin modificar ------------------------------------------------
+
+table(df_2$mes)
+
+# ---- Antes del periodo de interés 
+df_antes <- df_2 %>% # notas antes de 01/06
+  filter(mes < "jun") # Todo antes de junio: 121 notas
+
+table(df_antes$mes)
+
+# ---- Después del periodo de interés
+df_despues <- df_2 %>% # notas después de octubre: 8 notas
+  filter(mes > "oct") # Todo antes de junio: 121 notas
+
+table(df_despues$mes)
+
+# ----- Periodo de interés
 df_monitor_amplio <- df_2 %>% 
-  filter(fecha_de_publicacion >= '2022-06-01') %>% 
-  filter(fecha_de_publicacion <= '2022-10-31') # octubre
+  # Dejar todo lo que sea posterior a mayo y previo a noviembre
+  filter(mes > "may" & mes < "nov")  
 
+
+# ---- Filtros de calidad 
+
+# Ver meses incluidos en la base: 
+table(df_monitor_amplio$mes)
+
+# Ver que las dimensiones de las baes sean consistenten 
+dim(df_2)
+dim(df_antes)
+dim(df_monitor_amplio)
+dim(df_despues)
+
+# ---- Guardar base 
 openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
 save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))
 
-# 3.1 Estructura de la base modificada-----------------------------------------
-
-# ¿Cuáles son las dimensiones de la base?
-dim(df_3)
-
-# ¿Cuántas observaciones hay por entidad?
-table(df_3$estado)
-
-# ¿Cuáles entidadades están registradas?
-unique(df_3$estado)
-
-# ¿Cuántas entidadades están registradas?
-length(unique(df_3$estado))
-
-# ¿En cuántas observaciones no se registró la entidad?
-sum(is.na(df_3$estado))
-
-# Ver observaciones defectusas 
-df_na <- df_3 %>% 
-  filter(is.na(estado))
-
-# 3.2 Guardar base modificada------- -------------------------------------------
-df_monitor <- df_3
-
-save(df_monitor, file = paste_out("df_monitor.Rdata"))
-
-
+# FIN. -------------------------------------------------------------------------
                       
 
