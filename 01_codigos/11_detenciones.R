@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          14 de diciembre de 2022
-# Última actualización:       14 de diciembre de 2022
+# Última actualización:       12 de enero de 2022
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD: junio a noviembre 2022
@@ -65,24 +65,14 @@ df_detenciones <- df_monitor_amplio %>%
          ataque                       = ataque_armado,
          secuestro                    = privacion_de_la_libertad,
          narcomensaje, 
-         contenido_narcomensaje       = contenido_del_narcomensaje, 
          militar                      = autoridad_militar,
          militar_actividad            = tipo_de_actividad_militar,
          civil                        = autoridad_civil,
          civil_actividad              = tipo_de_actividad_civil,
          politica_seguridad           = politica_de_seguridad,
          grupo_criminal               = nombre_del_grupo_criminal_gc,
-         alianza_grupo                = alianza_del_gc,
-         rival_grupo                  = rival_del_gc, 
          homicidios_t                 = numero_de_homicidios_total,
-         homicidios_h                 = numero_de_detenidos_hombres,
-         homicidios_m                 = numero_de_heridas_mujeres, 
-         homicidio_pertenece          = pertenece_a,
-         cuerpo_localizado            = cuerpo_s_localizado_s, 
-         heridos_t                    = numero_de_heridos_as_total,
-         heridos_h                    = numero_de_detenidos_hombres,
-         heridos_m                    = numero_de_heridas_mujeres,
-         herido_pertenece             = herido_a_pertenece_a) %>% 
+         heridos_t                    = numero_de_heridos_as_total) %>% 
   mutate(trafico = 
            case_when(trafico %in% v_sustancias ~ "sustancias",
                      trafico %in% v_sustancias_delitos ~ "sustancias_delitos",

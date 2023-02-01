@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          25 de junio de 2022
-# Última actualización:       25 de noviembre de 2022
+# Última actualización:       01 de febrero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -159,46 +159,22 @@ df_2 <- df_1 %>%
          "tipo_de_actividad_civil" = "x4_2_2_tipo_de_actividad_civil",
          "politica_de_seguridad_y_de_drogas" = "x5_politica_de_seguridad_y_de_drogas",
          "politica_de_seguridad" = "x5_1_politica_de_seguridad",
-         "politica_de_drogas" = "x5_2_politica_de_drogas") %>% 
-  select(-c(`tipo_de_elemento`, `ruta_de_acceso`)) %>% 
-# 2.1 Base modificada-----------------------------------------------------------
-# Id nuevos, eliminación de repetidos y política de seguridad y drogas
-# construcción de identificadores 
-  mutate(n_hechos = 
-           (numero_de_homicidios_total > 0) + 
-           (numero_de_heridos_as_total > 0) + 
-           (numero_de_detenidos_as_total > 0) +
-           (narcomensaje) +
-           (privacion_de_la_libertad) +
-           !is.na(otras_actividades_ilicitas)) %>% 
-# Casos repetidos 
-  distinct(fecha_de_publicacion, fecha_de_los_hechos, municipio, n_hechos, 
-           autoridad_militar, autoridad_civil, 
-           nombre_del_grupo_criminal_gc, cuerpo_s_localizado_s, 
-           numero_de_homicidios_total, numero_de_detenidos_as_total, ataque_armado,
-           politica_de_seguridad, lugar,
-           .keep_all = TRUE) 
+         "politica_de_drogas" = "x5_2_politica_de_drogas") 
 
-# Controles de calidad 
-# v_unicos <- unique(df_2$id)
-# 
-# df_eliminados <- df_1 %>%
-#    filter(!Id %in% v_unicos)
-# 
-# table(df_eliminados$Responsable)
+sum(is.na(df_2$fecha_de_publicacion)) # Hay 3 NAs
 
-# Quitar variables política de seguridad y drogas e internacional
-df_3 <- df_2 %>% 
-  filter(!politica_de_seguridad == TRUE,
-         !politica_de_drogas == TRUE,
-         presencia_internacional == FALSE) %>% 
-  select(-c(politica_de_seguridad, politica_de_drogas, presencia_internacional))
+# 3. Guardar base sin modificar-----------------------
+df_antes1 <- df_2 %>% # notas antes de 01/06
+  filter(fecha_de_publicacion >= '2022-01-01') %>% 
+  filter(fecha_de_publicacion <= '2022-05-31') 
 
+df_antes2 <- df_2 %>% # notas después de 01/11 
+  filter(fecha_de_publicacion >= '2022-11-01') %>% 
+  filter(fecha_de_publicacion <= '2022-11-30') # 
 
-# 3. Guardar base sin modificar (amplia, hasta línea 160)-----------------------
 df_monitor_amplio <- df_2 %>% 
-  filter(fecha_de_los_hechos >= '2022-06-01') %>% 
-  filter(fecha_de_los_hechos <= '2022-11-01') # octubre
+  filter(fecha_de_publicacion >= '2022-06-01') %>% 
+  filter(fecha_de_publicacion <= '2022-10-31') # octubre
 
 openxlsx::write.xlsx(df_monitor_amplio, file = paste_out("Monitor_df_full.xlsx"), overwrite = T)
 save(df_monitor_amplio, file = paste_out("df_monitor_amplio.Rdata"))

@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          10 de noviembre de 2022
-# Última actualización:       10 de enero de 2023
+# Última actualización:       26 de enero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2
@@ -101,13 +101,13 @@ df_microdatos2 <- m10 %>% # noviembre
          "publicacion" = "x1_2_1_fecha_de_publicacion",
          "estado"      = "x1_3_3_estado")
 
-df_microdatos4 <- m11 %>% # diciembre 10/01/23
+df_microdatos4 <- m11 %>% # diciembre 19/01/23
   janitor::clean_names() %>% 
   select("responsable" = "x1_1_responsable",
          "publicacion" = "x1_2_1_fecha_de_publicacion",
          "estado"      = "x1_3_3_estado")
 
-# Se pagan las bases de junio a noviembre 
+# Se pagan las bases de junio a diciembre 
 df_microdatos3 <-  df_microdatos1 %>% 
   bind_rows(df_microdatos2)       %>% 
   bind_rows(df_microdatos4)       %>%
@@ -184,7 +184,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 10/01/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 26/01/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -225,7 +225,7 @@ for(i in 6:12) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 10/01/2023 ")
+      caption = paste0("Fuente: Monitor-PPD al 26/01/23 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +
