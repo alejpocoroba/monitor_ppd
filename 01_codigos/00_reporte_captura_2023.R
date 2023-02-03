@@ -5,10 +5,10 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       26 de enero de 2023
+# Última actualización:       03 de febrero de 2023
 #------------------------------------------------------------------------------#
 
-# Fuente: Monitor PPD versión 2
+# Fuente: Monitor PPD versión 2023
 
 # 0. Configuración inicial -----------------------------------------------------
 
@@ -33,7 +33,7 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 # 1. Cargar datos --------------------------------------------------------------
 
 #junio
-m1 <- read_xlsx(paste_inp("Monitor_PPD_enero.26.xlsx"))
+m1 <- read_xlsx(paste_inp("Monitor_PPD_enero03.02.xlsx"))
 
 # 2. Procesamiento 
 
@@ -103,7 +103,7 @@ df_data1 <- df_ %>%
 # Por estado, publicación y responsable
 ggplot(
   # Datos
-  df_data1 %>% filter(publicacion>= as.Date("2023-01-01"), publicacion<= as.Date("2023-01-31")), 
+  df_data1 %>% filter(publicacion> as.Date("2023-01-01"), publicacion< as.Date("2023-01-31")), 
   # Coordenadas 
   aes(x = publicacion, y = total, fill = responsable)) +
   facet_wrap(~estado, ncol = 8) +
@@ -116,7 +116,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 26/01/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 03/02/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
