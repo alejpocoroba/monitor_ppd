@@ -1,8 +1,8 @@
 ---
 title: "__Reporte trimestral del Monitor PPD__"
-subtitle: "__junio, agosto y septiembre de 2022__"
+subtitle: "__Junio - Octubre 2022__"
 author: "Programa de Política de Drogas (PPD)"
-date: "17/11/2022"
+date: "01/01/2023"
 # date: "Actualizado el `r format(Sys.time(), '%d-%m-%Y')`"
 output: 
   rmarkdown::pdf_document:
@@ -35,10 +35,10 @@ paste_fig <- function(x){paste0("../04_figuras/"      , x)}
 paste_out <- function(x){paste0("../03_datos_limpios/", x)}
 
 # Cargar datos
-load(paste_out("df_monitor_amplio.Rdata"))
+load(paste_out("monitor_jun_oct.Rdata"))
 
 # Procesar datos------
-df_crudo <- df_monitor_amplio %>% 
+df_crudo <- monitor_jun_oct %>% 
   # variables de interés
   select(publicacion = fecha_de_publicacion,
          estado, 
@@ -63,8 +63,8 @@ df_crudo <- df_monitor_amplio %>%
          civil           = autoridad_civil, 
          civil_a         = tipo_de_actividad_civil) %>% 
   # fecha para el reporte: julio, agosto y septiembre 2022 
-  filter(publicacion >= '2022-06-01') %>% 
-  filter(publicacion <= '2022-08-31')
+  filter(publicacion > '2022-06-01') %>% 
+  filter(publicacion < '2022-08-31')
 
 ```
 
@@ -116,7 +116,7 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Homicidios violentos en México",
-       subtitle = "De julio, agosto y septiembre del 2022\n",
+       subtitle = "Julio - Octubre 2022\n",
        fill = "Número de homicidios", 
        caption = "Fuente: Monitor-PPD (2022)") +
   # scale_fill_gradient(low = "white", high = "red", na.value = NA) +
@@ -201,7 +201,7 @@ ggplot(tipo_hom,
   # Etiqueta 
   labs( 
     title = "Homicidios violentos en México", 
-    subtitle = "Por tipo de evento de junio a agosto de 2022",  
+    subtitle = "Por tipo de evento de Julio - Octubre 2022",  
     x = "Tipo de evento", 
     y = "Número de homicidios",  
     caption = "Fuente: Monitor-PPD (2022)") +  
@@ -215,34 +215,34 @@ ggplot(tipo_hom,
 
 ## Homicidios, heridos(as) y detenidos(as)
 ```{r tabla de homicidios, heridos(as) y detenidos(as)}
-tabla_homi <- df_crudo %>% 
-  select(homicidio_t, homicidio_v, homicidio_m, 
-         heridos_t, heridos_v, heridos_m,       
-         detenidos_t, detenidos_v, detenidos_m) %>% 
-  summarize_all(~sum(., na.rm = T)) %>% 
-  pivot_longer(
-    cols = homicidio_t:detenidos_m, 
-    names_to = c("evento", "sexo"),
-    names_sep = "_", 
-    values_to = "total") %>% 
-  mutate(
-    sexo = case_when(
-      sexo == "t"  ~ "Total", 
-      sexo == "v"  ~ "Hombre",
-      sexo == "m"  ~ "Mujer"),
-    evento = case_when(
-      evento == "detenidos" ~ "Detenidos(as)",
-      evento == "heridos"   ~ "Heridos(as)",
-      T ~ "Homicidios")) %>% 
-  group_by(evento, sexo) %>% 
-  summarise(total = sum(total)) %>% 
-  pivot_wider(
-    names_from = sexo, 
-    values_from = total) %>% 
-  arrange(desc(evento)) %>% 
-  rename(Evento = evento)
+#tabla_homi <- df_crudo %>% 
+#  select(homicidio_t, homicidio_v, homicidio_m, 
+#         heridos_t, heridos_v, heridos_m,       
+#         detenidos_t, detenidos_v, detenidos_m) %>% 
+#  summarize_all(~sum(., na.rm = T)) %>% 
+#  pivot_longer(
+#    cols = homicidio_t:detenidos_m, 
+#    names_to = c("evento", "sexo"),
+#    names_sep = "_", 
+#    values_to = "total") %>% 
+#  mutate(
+#    sexo = case_when(
+#      sexo == "t"  ~ "Total", 
+#      sexo == "v"  ~ "Hombre",
+#      sexo == "m"  ~ "Mujer"),
+#    evento = case_when(
+#      evento == "detenidos" ~ "Detenidos(as)",
+#      evento == "heridos"   ~ "Heridos(as)",
+#      T ~ "Homicidios")) %>% 
+#  group_by(evento, sexo) %>% 
+#  summarise(total = sum(total)) %>% 
+#  pivot_wider(
+#   names_from = sexo, 
+#    values_from = total) %>% 
+#  arrange(desc(evento)) %>% 
+#  rename(Evento = evento)
 
-knitr::kable(tabla_homi)
+# knitr::kable(tabla_homi)
 
 ```
 
@@ -464,7 +464,7 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Presencia criminal en México",
-       subtitle = "Entre julio, agosto y septiembre del 2022\n",
+       subtitle = "Entre Julio - Octubre 2022\n",
        fill = "Número", 
        caption = "Fuente: Monitor-PPD (2022)") +
    # scale_fill_viridis(option="plasma", breaks = c(1, 5, 10)) +
@@ -505,7 +505,7 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Personsas desaparecidas y/o sin localizar en México",
-       subtitle = "Entre junio, julio y agosto del 2022\n",
+       subtitle = "Entre Julio - Octubre 2022\n",
        fill = "Número", 
        caption = "Fuente: Monitor-PPD (2022)") +
   # scale_fill_gradient(low=cols[1],high=cols[2]) +
@@ -596,27 +596,5 @@ ggplot(
   theme_minimal() +
   guides(fill = "none")
   
-```
-
-\newpage
-
-- Opción 2: 
-
-Total = todas las intervenciones de todas las autoridades en un estado
-```{r Fuerzas armadas e instituciones civiles 2}
-# Total = todas las intervenciones de todas autoridades en un estado 
-t_tip_estado <- df_autoridad %>% 
-  mutate(total =  militar + civil + ambas) %>% 
-  mutate(militar = militar/total,
-         civil   = civil/total, 
-         ambas   = ambas/total, 
-         militar = scales::percent(militar, accuracy = 0.1), 
-         civil   = scales::percent(civil, accuracy = 0.1),
-         ambas   = scales::percent(ambas, accuracy = 0.1)) %>% 
-  select(!total) %>% 
-  mutate(estado = str_sub(estado, 1, -4))
-
-knitr::kable(t_tip_estado)
-
 ```
 
