@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          08 de noviembre de 2022
-# Última actualización:       11 de enero de 2023
+# Última actualización:       11 de febrero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -29,16 +29,16 @@ paste_out <- function(x){paste0("03_datos_limpios/", x)}
 paste_inp2 <- function(x){paste0("02_datos_crudos/" , x)}
 
 # 1. Cargar datos---------------------------------------------------------------
-load(paste_inp("df_monitor_amplio.Rdata")) # junio - octubre
+load(paste_inp("monitor_jun_oct.Rdata")) # junio - octubre
 
 nov <- read_xlsx(paste_inp2("Monitor_PPD_noviembre.xlsx")) # noviembre
-dic <- read_xlsx(paste_inp2("Monitor_PPD_diciembre.xlsx")) # diciembre
+dic <- read_xlsx(paste_inp2("Monitor_PPD_diciembre10.02.xlsx")) # diciembre
 
 # 2. Limpieza de los datos------------------------------------------------------
 ## Datos de Chihuahua-----------------------------------------------------------
 
 #limpieza junio - octubre
-df_chi1 <- df_monitor_amplio %>% 
+df_chi1 <- monitor_jun_oct %>% 
   filter(estado == "Chihuahua-08")
 
 # Limpieza en el nombre de Juárez
@@ -52,8 +52,8 @@ df_chi2 <- df_chi1 %>%
 ## Datos de Ciudad Juárez-----
 df_juarez1 <- df_chi2 %>% 
   filter(municipio == "Juárez-08-037") %>% 
-  filter(fecha_de_los_hechos >= "2022-06-01") %>% 
-  filter(fecha_de_los_hechos <= "2022-10-31") %>% 
+  filter(fecha_de_publicacion > "2022-06-01") %>% 
+  filter(fecha_de_publicacion < "2022-10-31") %>% 
   # variables de interés
   select(-c("datos_generales":"fecha_de_publicacion", 
             "nombre_de_la_fuente":"hechos",
@@ -78,6 +78,7 @@ df_juarez2 <- nov %>%
          "titulo_de_la_nota"            = "x1_2_3_titulo_de_la_nota",
          "estado"                       = "x1_3_3_estado",
          "municipio"                    = "x1_3_4_municipio",
+         "fecha_de_publicacion"         = "x1_2_1_fecha_de_publicacion",
          "fecha_de_los_hechos"          = "x1_3_1_fecha_de_los_hechos", 
          "lugar"                        = "x1_3_5_lugar",
          "nombre_del_grupo_criminal_gc" = "x5_1_3_nombre_del_grupo_criminal_gc",
@@ -115,6 +116,7 @@ df_juarez3 <- dic %>%
          "estado"                       = "x1_3_3_estado",
          "municipio"                    = "x1_3_4_municipio",
          "fecha_de_los_hechos"          = "x1_3_1_fecha_de_los_hechos", 
+         "fecha_de_publicacion"         = "x1_2_1_fecha_de_publicacion",
          "lugar"                        = "x1_3_5_lugar",
          "nombre_del_grupo_criminal_gc" = "x5_1_3_nombre_del_grupo_criminal_gc",
          "alianza_del_gc"               = "x5_1_4_alianza_del_gc",
@@ -193,7 +195,7 @@ table(enfrentamiento$herido_a_pertenece_a)
 
 # Presencia criminal 
 grupos <- df_juarez5 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          nombre_del_grupo_criminal_gc, alianza_del_gc, rival_del_gc,
          numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s,
          numero_de_heridos_as_total, herido_a_pertenece_a,
@@ -205,9 +207,9 @@ grupos <- df_juarez5 %>%
 ##### Total de homicidios----
 # 1) Total homicidios - base general
 df_homicidios_d1 <- df_juarez5 %>% 
-  select(fecha_de_los_hechos, numero_de_homicidios_total) %>%
+  select(fecha_de_publicacion, numero_de_homicidios_total) %>%
   filter(numero_de_homicidios_total >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_homicidios_d1)
 
@@ -221,9 +223,9 @@ mean(df_homicidios_d1$total_homicidios)
 
 # 1) Homicidios - cuerpos localizados: general
 df_cuerpos_d1 <- df_juarez5 %>% 
-  select(fecha_de_los_hechos, numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s) %>% 
+  select(fecha_de_publicacion, numero_de_homicidios_total, pertenece_a, cuerpo_s_localizado_s) %>% 
   filter(cuerpo_s_localizado_s == "TRUE") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_cuerpos_d1)
 
@@ -234,12 +236,12 @@ sum(df_cuerpos_d1$total_homicidios, na.rm = T) # cuerpos localizados: 223
 
 # 1) Homicidios - agresión: en general 
 df_agre_d1 <- df_juarez5 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "agresión") %>% 
   filter(numero_de_homicidios_total >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
 sum(df_agre_d1$total_homicidios) # homicidios por agresión: 271
@@ -250,12 +252,12 @@ mean(df_agre_d1$total_homicidios)
 
 # 1) Homicidios - enfrentamiento: en general
 df_enfren_d1 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "enfrentamiento") %>% 
   filter(numero_de_homicidios_total >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 view(df_enfren_d1)
 # Total
@@ -265,55 +267,55 @@ sum(df_enfren_d1$total_homicidios) # homicidios en enfrentamiento: 1
 
 # 1) Homicidios - arma blanca
 df_otro_d1 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "ataque con arma blanca") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
 sum(df_otro_d1$total_homicidios) # arma blanca: 0
 
 # 2) Homicidios - bomba molotv
 df_otro_d2 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "bomba molotov") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
 sum(df_otro_d2$total_homicidios) # bomba molotov: 1
 
 # 3) Homicidios - riña
 df_otro_d3 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "riña") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
 sum(df_otro_d3$total_homicidios) # riña: 2
 
 # 4) Homicidios - golpeados
 df_otro_d4 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "golpeado") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
 sum(df_otro_d4$total_homicidios) # golpeado: 1
 
 # 5) Homicidios - golpes
 df_otro_d5 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_homicidios_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "golpes") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_homicidios = sum(numero_de_homicidios_total, na.rm = T))
 # Total
 sum(df_otro_d5$total_homicidios) # golpes: 1
@@ -323,10 +325,10 @@ sum(df_otro_d5$total_homicidios) # golpes: 1
 ##### Total de heridos----
 # 1) Total heridos - base general
 df_heridxs_d1 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, numero_de_heridos_as_total,
+  select(fecha_de_publicacion, numero_de_heridos_as_total,
          numero_de_heridos_hombres, numero_de_heridas_mujeres) %>%
   filter(numero_de_heridos_as_total >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 view(df_heridxs_d1)
 
@@ -337,12 +339,12 @@ sum(df_heridxs_d1$total_heridos, na.rm = T)
 
 # 1) heridos - agresión: en general 
 df_heridxs_d2 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "agresión") %>% 
   filter(numero_de_heridos_as_total >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 # Total
 sum(df_heridxs_d2$total_heridos) # heridos por agresión: 105
@@ -353,12 +355,12 @@ mean(df_heridxs_d2$total_homicidios)
 
 # 1) heridos - enfrentamiento: en general
 df_heridxs_d3 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "enfrentamiento") %>% 
   filter(numero_de_heridos_as_total >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 view(df_heridxs_d3)
 # Total
@@ -366,7 +368,7 @@ sum(df_heridxs_d3$total_heridos) # heridos en enfrentamiento: 1
 
 # heridos - armas de fuego (agresió+ enfrentamiento)
 df_heridxs_dos <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total,
          numero_de_heridos_hombres, 
          numero_de_heridas_mujeres,
@@ -387,55 +389,55 @@ sum(df_heridxs_dos$numero_de_heridas_mujeres, na.rm = T)
 
 # 1) Heridos - arma blanca
 df_heridxs_d4 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "ataque con arma blanca") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 # Total
 sum(df_heridxs_d4$total_heridos) # arma blanca: 0
 
 # 2) Heridos - bomba molotv
 df_heridxs_d5 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "bomba molotov") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 # Total
 sum(df_heridxs_d5$total_heridos) # bomba molotov: 1
 
 # 3) Homicidios - riña
 df_heridxs_d6 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "riña") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 # Total
 sum(df_heridxs_d6$total_heridos) # riña: 21
 
 # 4) Homicidios - golpeados
 df_heridxs_d7 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "golpeado") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 # Total
 sum(df_heridxs_d7$total_heridos) # golpeado: 0
 
 # 5) Homicidios - golpes
 df_heridxs_d8 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          numero_de_heridos_as_total, pertenece_a,
          ataque_armado) %>% 
   filter(ataque_armado == "golpes") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_heridos = sum(numero_de_heridos_as_total, na.rm = T))
 # Total
 sum(df_heridxs_d8$total_heridos) # golpes: 0
@@ -444,11 +446,11 @@ sum(df_heridxs_d8$total_heridos) # golpes: 0
 
 # 1) Desaparecidos: general 
 df_desaparecidos1 <- df_juarez1 %>% 
-  select(fecha_de_los_hechos, 
+  select(fecha_de_publicacion, 
          privacion_de_la_libertad, numero_de_personas_privadas_de_su_libertad) %>% 
   filter(privacion_de_la_libertad == "TRUE") %>% 
   filter(numero_de_personas_privadas_de_su_libertad >= "1") %>% 
-  group_by(fecha_de_los_hechos) %>% 
+  group_by(fecha_de_publicacion) %>% 
   summarise(total_desaparecidos = sum(numero_de_personas_privadas_de_su_libertad, na.rm = T))
 sum(df_desaparecidos1$total_desaparecidos) # desaparecidos: 21
 View(df_desaparecidos1)
@@ -458,9 +460,9 @@ View(df_desaparecidos1)
 # Homicidios mensual 
 
 fecha <- df_homicidios_d1 %>% 
-  mutate(mes = lubridate::month(fecha_de_los_hechos), 
-         dia = fecha_de_los_hechos,
-         semana = lubridate::week(fecha_de_los_hechos)) %>% 
+  mutate(mes = lubridate::month(fecha_de_publicacion), 
+         dia = fecha_de_publicacion,
+         semana = lubridate::week(fecha_de_publicacion)) %>% 
   group_by(mes) %>% 
   summarize(mes_total = sum(total_homicidios)) %>% 
   mutate(mes = case_when(

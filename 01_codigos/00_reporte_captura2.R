@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          10 de noviembre de 2022
-# Última actualización:       03 de febrero de 2023
+# Última actualización:       13 de febrero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2
@@ -55,7 +55,7 @@ m9 <- read_xlsx(paste_inp("Monitor_PPD_octubre.xlsx"))
 m10 <- read_xlsx(paste_inp("Monitor_PPD_noviembre.xlsx"))
 
 # Diciembre
-m11 <- read_xlsx(paste_inp("Monitor_PPD_diciembre03.02.xlsx"))
+m11 <- read_xlsx(paste_inp("Monitor_PPD_diciembre13.02.xlsx"))
 
 # 2. Limpar datos --------------------------------------------------------------
 
@@ -101,7 +101,7 @@ df_microdatos2 <- m10 %>% # noviembre
          "publicacion" = "x1_2_1_fecha_de_publicacion",
          "estado"      = "x1_3_3_estado")
 
-df_microdatos4 <- m11 %>% # diciembre 19/01/23
+df_microdatos4 <- m11 %>% # diciembre 13/02/23
   janitor::clean_names() %>% 
   select("responsable" = "x1_1_responsable",
          "publicacion" = "x1_2_1_fecha_de_publicacion",
@@ -184,7 +184,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 03/02/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 13/02/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -225,7 +225,7 @@ for(i in 6:12) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 03/02/23 ")
+      caption = paste0("Fuente: Monitor-PPD al 13/02/23 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +
