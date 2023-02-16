@@ -220,6 +220,32 @@ ggsave(file = paste_fig("reporte_2022/02_homicidios_serie.png"))
 
 
 
+# # Serie de tiempo 
+# ggplot(
+#   # Datos
+#   df_plot1, 
+#   # Coordenadas
+#   aes(x = year_m, y = total)) +
+#   # Geoms
+#   geom_area(fill = "#d62828") +
+#   # Etiquetas
+#   labs(
+#     title = "Homicidios violentos en México", 
+#     subtitle = "Julio - Diciembre 2022\n", 
+#     x = "", 
+#     y = "", 
+#     caption = v_caption
+#   ) +
+#   # Etiquetas 
+#   scale_y_continuous(label = scales::comma_format(), limits = c(0, 2000)) +
+#   # Tema
+#   tema
+# 
+# # Guardar
+# ggsave(file = paste_fig("reporte_2022/02_homicidios_serie.png"))
+
+
+
 #### Total estatal al mes ------------------------------------------------------
 
 # Procesar datos 
@@ -236,6 +262,7 @@ df_plot2 <- df_homicidios %>%
   )
 
 
+# ---- Versión  vertical con eje y libre
 # Serie de tiempo 
 ggplot(
   # Datos
@@ -260,8 +287,109 @@ ggplot(
   tema
 
 # Guardar
-ggsave(file = paste_fig("reporte_2022/03_homicidios_serie_estados.png"), 
+ggsave(file = paste_fig("reporte_2022/03a_homicidios_serie_estados.png"), 
        width = 10, height = 12)
+
+
+# ---- Versión  horizontal con eje y libre
+# Serie de tiempo 
+ggplot(
+  # Datos
+  df_plot2, 
+  # Coordenadas
+  aes(x = mes, y = total, group = 1)) +
+  facet_wrap(~estado, scale = "free", ncol = 8, labeller = label_wrap_gen(width = 16)) +
+  # Geoms
+  geom_line(size = 1, color = "#98989A") +
+  geom_point(size = 2, color = "#6F7271") +
+  # Etiquetas
+  labs(
+    title = "Homicidios violentos en México", 
+    subtitle = "Julio - Diciembre 2022\n", 
+    x = "", 
+    y = "", 
+    caption = v_caption
+  ) +
+  # Etiquetas 
+  scale_y_continuous(label = scales::comma_format()) +
+  # Tema
+  tema
+
+# Guardar
+ggsave(file = paste_fig("reporte_2022/03b_homicidios_serie_estados.png"), 
+       width = 15, height = 8)
+
+# ---- Versión  horizontal con eje y libre
+# Serie de tiempo 
+ggplot(
+  # Datos
+  df_plot2, 
+  # Coordenadas
+  aes(x = mes, y = total, group = 1)) +
+  facet_wrap(~estado, scale = "free_x", ncol = 8, labeller = label_wrap_gen(width = 16)) +
+  # Geoms
+  geom_line(size = 1, color = "#98989A") +
+  geom_point(size = 2, color = "#6F7271") +
+  # Etiquetas
+  labs(
+    title = "Homicidios violentos en México", 
+    subtitle = "Julio - Diciembre 2022\n", 
+    x = "", 
+    y = "", 
+    caption = v_caption
+  ) +
+  # Etiquetas 
+  scale_y_continuous(label = scales::comma_format()) +
+  # Tema
+  tema
+
+# Guardar
+ggsave(file = paste_fig("reporte_2022/03c_homicidios_serie_estados.png"), 
+       width = 15, height = 8)
+
+
+
+# ---- Versión  spaghetti
+# Valores más altos en diciembre
+df_top3 <- df_plot2 %>% 
+  ungroup() %>% 
+  filter(mes == "dic") %>% 
+  arrange(desc(total)) %>% 
+  slice(1:3) %>% 
+  glimpse()
+
+v_max <- df_top3$estado
+
+# Serie de tiempo 
+ggplot(
+  # Datos
+  df_plot2, 
+  # Coordenadas
+  aes(x = mes, y = total, group = estado)) +
+  # Geoms
+  geom_line(size = 1, color = "#98989A") +
+  geom_point(size = 2, color = "#6F7271") +
+  geom_text(
+    aes(label = if_else((df_plot2$estado %in% v_max) & df_plot2$mes == "dic", 
+                    estado, NA_character_)), family = "Gotham", color = "black", 
+    nudge_x = 0.2, nudge_y = 8) +
+  # Etiquetas
+  labs(
+    title = "Homicidios violentos en México", 
+    subtitle = "Julio - Diciembre 2022\n", 
+    x = "", 
+    y = "", 
+    caption = v_caption
+  ) +
+  # Etiquetas 
+  scale_y_continuous(label = scales::comma_format()) +
+  # Tema
+  tema
+
+# Guardar
+ggsave(file = paste_fig("reporte_2022/03d_homicidios_serie_estados.png"))
+
+
 
 
 ## 3.2 Homicidos por criterios -------------------------------------------------
