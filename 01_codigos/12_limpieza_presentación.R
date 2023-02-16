@@ -401,15 +401,28 @@ ggsave(file = paste_fig("reporte_2022/03d_homicidios_serie_estados.png"))
 v_eventos <- unique(df_homicidios$ataque_armado_clean) # 12 tipos de eventos
 
 
+
+table(df_homicidios$cuerpos_localizados)
+
+
+df_cuerpos <- df_homicidios     %>% 
+  ungroup()                     %>% 
+  summarise(total = sum(cuerpos_localizados, na.rm = TRUE)) %>% 
+  mutate(evento = "Cuerpos localizados")
+  
+
+  
 df_plot3 <- df_homicidios %>% 
   mutate(evento = ataque_armado_clean) %>% 
   group_by(evento) %>% 
   summarise(total = sum(homic_total, na.rm = TRUE)) %>% 
   drop_na() %>% 
   ungroup() %>% 
-  mutate(evento = if_else(total < 20, "Otros", evento)) %>% 
+  # mutate(evento = if_else(total < 20, "Otros", evento)) %>% 
   group_by(evento) %>% 
-  summarise(total = sum(total, na.rm = TRUE)) 
+  summarise(total = sum(total, na.rm = TRUE)) %>% 
+  bind_rows(df_cuerpos) %>% 
+  mutate(evento = str_to_title(evento))
 
 # table(df_homicidios$cuerpos_localizados)
 
