@@ -303,17 +303,275 @@ df_nombres <- df_crudo %>%
 
 ## 4.2. Limpiar nombres --------------------------------------------------------
 
-# Agrupar todos los nombres distintos 
+# ---- Agrupar todos los nombres distintos 
 v_grupos <- unique(
   c(df_nombres$grupo1, df_nombres$grupo2, df_nombres$grupo3, df_nombres$grupo4, 
     df_nombres$grupo5, df_nombres$grupo6, df_nombres$grupo7, df_nombres$grupo8, 
     df_nombres$grupo9, df_nombres$grupo10))
 
-
 # Hay muchos casos donde el nombre comienza con un espacio (" ")
+
+# ---- Funciones de limpieza 
+
+# Función para clasificar si es un grupo armado, autodefensas o un alias
+clasificar_grupos <- function(x){
+
+  # ---- Vectores con las clasificaciones
+  v_gruposin <- c(
+    "Sujetos armados", "Banda de homicidas en Perote", "célula delictiva", 
+    "Narcomenudistas", "13 células delictivas", "Civiles Armados", "grupo armado", 
+    "Sin especificar", "sin especificar")
+  
+  v_autodefensas <- c(
+    "Columna Armada del General Pedro José Méndez", 
+    'Columna Armada Pedro José Méndez',
+    "Columna Armada Pedro José Méndez",
+    "Resistencia Civil de Baja California", 
+    "Autodefensa Fuerza Territorial Poblana", 
+    "Fuerza Territorial Poblana", 
+    "Unión de Pueblos y Organizaciones del Estado de Guerrero (UPOEG)",
+    'Octavio L. alias "Tarzán" líder de autodefensas de Tamaulipas',
+    " Unión de Pueblos y Organizaciones del Estado de Guerrero (UPOEG)")
+  
+  v_alias <- c(
+    "Julio Adrián, también conocido como ‘El Mercy’", "‘El Pollo’",
+    "‘El Smoll’", "El Panchito", "El Cholo", "Cipog-ez", "‘Zague’.",
+    "Don Cabezón", "Oscar Ivan Maras", "el Payepas","El Damaso",
+    "El Moyo", "El Jaibol", "“el Santa”", "‘Checo’", "Efraín, alias 'El Gato'",
+    "“El Yogui”", "“El Kinkis”", "\"El Bocho\"", "El Vampi", 
+    "“El Pillo”, apenas había tomado el poder en sustitución de recién capturado y peligroso líder narcomenudista “El Croquis”",
+    "“El Bengala”", "El Ruso", "\"El Rana\" y \"El Gus\"", "La Zorra", 
+    "El Colas","‘El Chuy’, ‘El Muerto’ y ‘El Jarro’", "El Grillo", 
+    "“El Huevo”", "Fabián N alias \"El Pelón\"", "“La Pegui” y/o “La Sombra”",
+    "‘El Carlitos’", "El Kaiman", "El Dany", "El Diablo", "\"El Negro\"",
+    "El Komander", "“El Color\"", "“El Merla”", "“El Pelón”.", "el pistolas",
+    "Cristian Alberto “N”, alias “El Bozo” o “El Alondra”", 
+    "\"El Carnitas\"", "\"El Carolo\"", "el Cantinflas", "Juan Antonio \"N\", alias \"Mares\" o \"Tambor\"",
+    "El Caimán", "La China", "el pepillo", "El Bolas", "El Bader", "El Tuerto", 
+    "hermanos Barrera Estrada", "\"El Rata\"", "\"El Manzano\"", "“El Metales\"", 
+    "“El Papirrín”", "El Perico", "“El Chavurras”", "El Cebollas", "Sierra 3", 
+    "“El Pinky\"", "\"El Roy\"", "Leonardo León ‘N’, alias “El Vainilla”", 
+    "El Dueñas", "‘El Chino’", "“El Mudo”", "El Tiko", "“El Parkita”", "\"El Hacha\"",
+    "‘La Platita’ y ‘El Gargamel’", "Jesús Isaac “N”, alías “El Chamán”", "“El Pato”",
+    "'El Lavadoras'", "“El Coco” y/o “El Tío”", "‘El Toro’", "“La Mariana” y/o “El Charly”",
+    "La Má",  "El Toñín", "El Toñín", "El Richi", "Los Juanchos (líder El Pirata)",
+    "Güicho el de Los Reyes", "El Tufito", "El Padrino Jr.", "el “Mulix”", "Toda la Sierra", 
+    "líder huachicolero Antonio Martínez Fuentes, alias “El Toñín”.",  "El Gordo Fresa", "El Fantasma", 
+    "El Pavón", "Guasón Poblano","El Guasón", "El Vago", "El Marrano", "El Trucha", 
+    " “El Acople”", " El Fresa", "“El Camacho”")
+  
+  # Condicioneales para limpieza  
+  case_when(
+    x %in% v_gruposin     ~ "grupo armado", 
+    x %in% v_autodefensas ~ "autodefensas", 
+    x %in% v_alias        ~ "alias", 
+    x  == x ~ x
+  )
+  
+}
+
+# Función para limpiar nombres de grupos armados
+
+limpiar_grupos <- function(x){
+  
+  case_when(
+    x  == "‘La Línea’ o Nuevo Cártel de Juárez (NCDJ)" ~ "La Línea",
+    x  == " La Línea" ~ "La Línea",
+    x  == "Grupo Delta/Gente Nueva"  ~ "Grupo Delta",
+    x  == "Grupo de Huachicol del Pelón del Sur" ~ "Banda del Pelón del Sur",
+    x  == "El Pelón del Sur" ~ "Banda del Pelón del Sur",
+    x  == "Los capetos"  ~ "Los Capetos",
+    x  == "Gente Nueva de los Salazar"  ~ "Los Salazar",
+    x  == "Gente Nueva Salazar"  ~ "Los Salazar",
+    x  == "La banda de “El Negro”"  ~ "Banda de El Negro",
+    x  == "banda delictiva de “Los Chinos”"  ~ "Los Chinos",
+    x  == "Los salazar"  ~ "Los Salazar",
+    x  == "Los Salazares"  ~ "Los Salazar", 
+    x  == "Los Salazares"  ~ "Los Salazar",
+    x  == "Cártel Jalisco"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == " Cártel Jalisco Nueva Generación"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == " CJNG"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == "CJNG"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == " El Cártel Jalisco Nueva Generación"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == "cártel Jalisco Nueva Generación" ~ "Cártel Jalisco Nueva Generación (CJNG)", 
+    x  == "Cártel Jalisco Nueva Generación"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == "el Cantinflas; CJNG"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == "Los pájaros sierra"  ~ "Pájaros Sierra",
+    x  == " líder de Pájaros Sierra"  ~ "Pájaros Sierra",
+    x  == "Cártel Los Alemanes de Los Zetas" ~ "Cártel Los Alemanes", 
+    x  == "Cártel de Los Alemanes" ~ "Cártel Los Alemanes",
+    x  == "banda \"La bolsa negra\""  ~ "Grupo La Bolsa Negra",
+    x  == "'El Víbora', presunto lugarteniente de 'El Bukanas'"  ~ "Grupo de El Bukanas",
+    x  == " El Bukanas"  ~ "Grupo de El Bukanas",
+    x  == "'El Loco Téllez'"  ~ "Grupo de El Loco Téllez",
+    x  == "El Loco Téllez"  ~ "Grupo de El Loco Téllez",
+    x  == " Célula Delictiva del Loco Téllez"  ~ "Grupo de El Loco Téllez",
+    x  == "gente de \"El Grillo\""  ~ "Banda de El Grillo",
+    x  == "banda de “Los Cucos”"  ~ "Banda de Los Cucos",
+    x  == "Cártel Arellano Félix"  ~ "Cártel de Los Arellano Félix",
+    x  == "Juan Antonio \"N\", alias \"Mares\" o \"Tambor\"; parte de una célula de integrantes remanentes del CSRDL"  ~ "Cártel de Santa Rosa de Lima",
+    x  == " parte de una célula de integrantes remanentes del CSRDL"  ~ "Cártel de Santa Rosa de Lima",
+    x  == "Cártel de H. Matamoros"  ~ "Cártel del Golfo",
+    x  == "“Los Lampones\""  ~ "Los Lampones", 
+    x  == "Unión Tepito"  ~ "La Unión Tepito",
+    x  == "La familia Michoacana"  ~ "La Familia Michoacana",
+    x  == " La Familia Michoacana"  ~ "La Familia Michoacana",
+    x  == " Familia Michacana"  ~ "La Familia Michoacana",
+    x  == " Familia Michoacana"  ~ "La Familia Michoacana",
+    x  == "La empresa"  ~ "La Empresa",
+    x  == "Los Mexicles o Los Aztecas"  ~ "Los Mexicles",
+    x  == "banda de Los Platanitos"  ~ "Banda de Los Platanitos",
+    x  == "La unión de los fantasmas" ~ "La Unión de los Fantasmas",
+    x  == "Cártel del Abuelo Farías" ~ "Cártel de Tepalcatepec", 
+    x  == "“El Abuelo”" ~ "Cártel de Tepalcatepec",
+    x  == "Guardia Guerrerense, antes Templarios." ~ "Guardia Guerrerense",
+    x  == "‘Los Tarzanes’ o ‘Los Sinaloa’" ~ "Los Sinaloa",
+    x  == "\"La Reina de los Sinaloas\"" ~ "Los Sinaloa",
+    x  == "alias \"El Mayo\"" ~ "Cártel de Sinaloa",
+    x  == "grupo del Chapos Trini" ~ "Cártel de Sinaloa",
+    x  == "Los Chapos Trinis" ~ "Cártel de Sinaloa",
+    x  == "Los Chapitos" ~ "Cártel de Sinaloa / Los Chapitos",
+    x  == "grupo El Jale Azul / El Sargento Huracán" ~ "Grupo El Jale Azul",
+    x  == "Escorpiones" ~ "Grupo Scorpion",
+    x  == "La Plaza" ~ "Cártel La Plaza",
+    x  == "los viagras" ~ "Los Viagras",
+    x  == " Los Viagras" ~ "Los Viagras",
+    x  == "Los correa" ~ "Cártel de los Correa",
+    x  == "Los Correa" ~ "Cártel de los Correa",
+    x  == " Célula delictiva del Mamer" ~ "Grupo del Mamer",
+    x  == " los caballeros templarios" ~ "Caballeros Templarios",
+    x  == " Los Caballeros Templarios" ~ "Caballeros Templarios",
+    x  == x ~ x
+  )
+  
+}
+
+# ---- Recodificar nombres con funciones 
+df_nombres_limpios <- df_nombres %>% 
+  # Crear variables con tipo de clasificación 
+  mutate(across(starts_with("grupo"), ~clasificar_grupos(.))) %>% 
+  # Limpiar nombres específicos de grupos criminales
+  mutate(across(starts_with("grupo"), ~limpiar_grupos(.)))  %>% 
+  # Quitar espacios en blanco al inicio y final (función trimws)
+  mutate(across(starts_with("grupo"), ~trimws(.))) %>% 
+  # Convertir autodefensas, alias y guardia civil a NAs
+  mutate(across(starts_with("grupo"), ~if_else(. %in% c("autodefensas", 
+                                                        "alias", 
+                                                        "Guardia Civil"), 
+                                               NA_character_, .))) 
+
+# ---- Agrupar todos los nombres distintos después de la limpieza
+v_grupos_limpios <- unique(
+  c(df_nombres_limpios$grupo1, df_nombres_limpios$grupo2, 
+    df_nombres_limpios$grupo3, df_nombres_limpios$grupo4, 
+    df_nombres_limpios$grupo5, df_nombres_limpios$grupo6, 
+    df_nombres_limpios$grupo7, df_nombres_limpios$grupo8, 
+    df_nombres_limpios$grupo9, df_nombres_limpios$grupo10))
 
 ## 4.3. Mapa -------------------------------------------------------------------
 
+# ---- Contar grupos criminales distintos por entidadad federativa
+
+# Quitar nombres dañados de entidades
+df_estados <- df_nombres_limpios %>% 
+  filter(!is.na(estado), estado != "20") %>% 
+  # Filtrar periodo de tiempo 
+  mutate(
+    mes     = lubridate::month(fecha_de_publicacion),
+    year_m  = zoo::as.yearmon(paste0(anio, "-", mes)),
+    mes = lubridate::month(fecha_de_publicacion, label = TRUE)) %>% 
+  filter(mes != "ene", mes != "jun") 
+  
+# Guardar los nombres de todas las entidades
+v_estados <- unique(df_estados$estado)
+
+# Data frame vacío para pegar resultados 
+df_grupos_entidad <- data.frame()
+
+# Bucle de limpieza por estado 
+for(i in 1:length(v_estados)){
+  
+  # Imprimir vuelta 
+  print(paste0("Vuelta ", i, ": ", v_estados[i]))
+  
+  # Filtrar base y dejar solo una entidad
+  df_entidad <- df_estados                  %>% 
+    filter(estado == v_estados[i])
+  
+  # Guardar un vector con los nombres únicos de grupo por entidad
+  v_grupos_estado <- unique(
+    c(df_entidad$grupo1, df_entidad$grupo2, 
+      df_entidad$grupo3, df_entidad$grupo4, 
+      df_entidad$grupo5, df_entidad$grupo6, 
+      df_entidad$grupo7, df_entidad$grupo8, 
+      df_entidad$grupo9, df_entidad$grupo10)) 
+  
+  # Quitar valor NA
+  v_grupos_estado <- v_grupos_estado[!is.na(v_grupos_estado)]
+  
+  # Guardar información en un data frame
+  df_grupos_entidad <- df_grupos_entidad    %>% 
+    bind_rows(data.frame(estado = v_estados[i], 
+                         total_grupos = length(v_grupos_estado)))
+  
+}
+
+# View(df_grupos_entidad)
+
+
+# ---- Pegar datos geo 
+df_mapa2 <- df_grupos_entidad               %>% 
+  mutate(region = str_sub(estado, -2, -1))  %>% 
+  left_join(mxstate.map, by = "region")
+
+# ---- Graficar mapa 
+ggplot(
+  # Datos
+  df_mapa2 %>% mutate(total_grupos = if_else(total_grupos == 0, NA_integer_, total_grupos)),
+  # Coordenadas
+  aes(long, lat, group = group, fill = total_grupos)) +
+  coord_map() +
+  geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
+  labs(title = "Presencia criminal en México",
+       subtitle = "Entre Julio - Diciembre 2022\n",
+       fill = "Número de grupos criminales", 
+       caption = "Fuente: Monitor-PPD (2022)") +
+  # scale_fill_gradient(low=cols[1],high=cols[2]) +
+  scale_fill_gradient(low = "#7FCCA1", high = "#193F29", na.value = "white", 
+                      breaks = seq(0, 40, 10)) +
+  theme(axis.line = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.text = element_blank(), 
+        axis.title = element_blank(),
+        panel.background = element_rect(fill = "white", 
+                                        colour = NA))
+# ---- Guardar mapa 
+ggsave(file = paste_fig("reporte_2022/04_grupos_mapa.png"))
+
+
+## 4.4. Barras -----------------------------------------------------------------
+
+ggplot(
+  # Datos
+  df_grupos_entidad %>% rename(total = total_grupos), 
+       aes(x = total, y = reorder(estado, total))) +
+  # Geoms
+  geom_col(fill = "#193F29") +
+  geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
+            hjust = if_else(df_barras$total<max(df_barras$total), -0.2, 1.5),
+            color = if_else(df_barras$total<max(df_barras$total), "black", "white")) +
+  # Etiquetas
+  labs(title = "Presencia criminal en México",
+       subtitle = "Entre Julio - Diciembre 2022\n",
+       x = "Número de grupos criminales registrados",
+       y = "", 
+       caption = "Fuente: Monitor-PPD (2022)") +
+  # Escalas 
+  scale_x_continuous(label = scales::comma_format()) +
+  # Tema 
+  tema
+
+ggsave(file = paste_fig("reporte_2022/05_grupos_barras.png"))
 
 # 5. Desaparecidos -------------------------------------------------------------
 
@@ -384,7 +642,7 @@ ggplot(
             hjust = if_else(df_barras$total<max(df_barras$total), -0.2, 1.5),
             color = if_else(df_barras$total<max(df_barras$total), "black", "white")) +
   # Etiquetas
-  labs(title = "Personsas desaparecidas y/o sin localizar en México",
+  labs(title = "Personas desaparecidas y/o sin localizar en México",
        subtitle = "Entre Julio - Diciembre 2022\n",
        fill = "Número", 
        x = "", 
