@@ -9,6 +9,9 @@
 # Última actualización:       15 de febrero de 2023
 #------------------------------------------------------------------------------#
 
+unique(df_crudo$instit_deten2)
+unique(df_crudo$instit_deten3)
+
 # Fuente: Monitor PPD 
 
 # Procesamiento de los nombres 
@@ -635,3 +638,68 @@ df_nombres2 <- df_nombres2 %>%
   mutate(rival = str_replace_all(rival, ":", ";")) %>% 
   separate(rival, sep = ";", c("rival1", 
                                "rival2")) 
+
+# Autoridad 
+## Limpieza de nombres
+colnames(df_crudo)
+unique(df_crudo$autoridad5)
+
+v_civil <- c("municipal", "guardia civil", "guardia de proximidad", 
+             "protección civil", "vial", "tránsito", "federal", 
+             "investigación", "aduana", "ministerial", "fiscalía",
+             "UECS", "AIC", "comisionado de seguridad", "PGJ", "estatal",
+             "preventiva", "INM", "mando único", "SSC", "PGJE", "penal", "ANAM")
+
+v_militar <- c("sedena", "semar", "GN")
+
+v_ambos <- c("operativo blindaje", "BOMU", "BOI")
+
+# Autoridad 1 
+
+df_autoridad <- df_crudo %>% 
+  mutate(
+    autoridad1 = case_when(
+      autoridad1 %in% v_civil ~ "institución civil",
+      autoridad1 %in% v_militar ~ "fuerzas armadas",
+      autoridad1 %in% v_ambos ~ "Operativos Conjuntos", 
+      autoridad1 == autoridad1 ~ autoridad1))
+
+# Autoridad 2
+
+df_autoridad <- df_autoridad %>% 
+  mutate(
+    autoridad2 = case_when(
+      autoridad2 %in% v_civil ~ "institución civil",
+      autoridad2 %in% v_militar ~ "fuerzas armadas",
+      autoridad2 %in% v_ambos ~ "Operativos Conjuntos", 
+      autoridad2 == autoridad2 ~ autoridad2))
+
+# Autoridad 3
+
+df_autoridad <- df_autoridad %>% 
+  mutate(
+    autoridad3 = case_when(
+      autoridad3 %in% v_civil ~ "institución civil",
+      autoridad3 %in% v_militar ~ "fuerzas armadas",
+      autoridad3 %in% v_ambos ~ "Operativos Conjuntos", 
+      autoridad3 == autoridad3 ~ autoridad3))
+
+# Autoridad 4
+
+df_autoridad <- df_autoridad %>% 
+  mutate(
+    autoridad4 = case_when(
+      autoridad4 %in% v_civil ~ "institución civil",
+      autoridad4 %in% v_militar ~ "fuerzas armadas",
+      autoridad4 %in% v_ambos ~ "Operativos Conjuntos", 
+      autoridad4 == autoridad4 ~ autoridad4))
+
+# Autoridad 5
+
+df_autoridad <- df_autoridad %>% 
+  mutate(
+    autoridad5 = case_when(
+      autoridad5 %in% v_civil ~ "institución civil",
+      autoridad5 %in% v_militar ~ "fuerzas armadas",
+      autoridad5 %in% v_ambos ~ "Operativos Conjuntos", 
+      autoridad5 == autoridad5 ~ autoridad5))
