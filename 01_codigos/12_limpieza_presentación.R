@@ -80,7 +80,7 @@ df_homicidios <- df_crudo %>%
     CVEGEO, starts_with("homic"), starts_with("cuerpos"), contains("ataque"), 
     homicidio, contains("arma")) %>% 
   # Filtrar para periodo de interés 
-  filter(mes != "ene", mes != "jun")
+  filter(mes != "ene")
 
 
 # Ver valores de variables de interés 
@@ -183,12 +183,13 @@ ggsave(file = paste_fig("reporte_2022/01b_homicidios_barras.png"))
 
 #### Total nacional al mes -----------------------------------------------------
 
+
 # Procesar datos 
 df_plot1 <- df_homicidios %>% 
   filter(homic_total > 0) %>% 
   group_by(year_m, mes)   %>% 
   summarise(total = sum(homic_total, na.rm = TRUE)) %>% 
-  filter(mes != "ene", mes != "jun") 
+  filter(mes != "ene") 
 
 # Serie de tiempo 
 ggplot(
@@ -212,12 +213,18 @@ ggplot(
   ) +
   # Etiquetas 
   scale_y_continuous(label = scales::comma_format(), limits = c(1300, 2000)) +
+  # scale_x_date(breaks = c(1:6)) +
+  zoo::scale_x_yearmon(breaks = seq(min(df_plot1$year_m), max(df_plot1$year_m), 1)) + 
   # Tema
   tema
  
+# zoo::scale_x_yearqtr(breaks = seq(min(d$fecha_t), max(d$fecha_t),1), 
+
 # Guardar
 ggsave(file = paste_fig("reporte_2022/02_homicidios_serie.png"))
 
+
+# zoo::scale_x_yearqtr(breaks = seq(min(d$fecha_t), max(d$fecha_t),1), 
 
 
 # # Serie de tiempo 
@@ -253,7 +260,7 @@ df_plot2 <- df_homicidios %>%
   filter(homic_total > 0) %>% 
   group_by(estado, year_m, mes)   %>% 
   summarise(total = sum(homic_total, na.rm = TRUE)) %>% 
-  filter(mes != "ene", mes != "jun") %>% 
+  filter(mes != "ene") %>% 
   drop_na() %>% 
   filter(estado != "20") %>% 
   mutate(
@@ -394,23 +401,28 @@ ggsave(file = paste_fig("reporte_2022/03d_homicidios_serie_estados.png"))
 
 ## 3.2 Homicidos por criterios -------------------------------------------------
 
+
+#### Nacional ------------------------------------------------------------------
+
 # PREGUNTA PARA MAILOBSKY: La variable ataque_armado_clean tiene algunos de los 
 # eventos incluidos en la gráfica del reporte, pero no los incluye todos y 
 # también incluye valores nuevos. 
 
 v_eventos <- unique(df_homicidios$ataque_armado_clean) # 12 tipos de eventos
 
+table(df_homicidios$ataque_armado_clean)
 
 
-table(df_homicidios$cuerpos_localizados)
+df_arma <- df_homicidios %>% 
+  filter(ataque_armado_clean  == "agresión con arma de fuego")
 
+table(df_arma$homic_total)
 
 df_cuerpos <- df_homicidios     %>% 
   ungroup()                     %>% 
   summarise(total = sum(cuerpos_localizados, na.rm = TRUE)) %>% 
   mutate(evento = "Cuerpos localizados")
   
-
   
 df_plot3 <- df_homicidios %>% 
   mutate(evento = ataque_armado_clean) %>% 
@@ -423,6 +435,9 @@ df_plot3 <- df_homicidios %>%
   summarise(total = sum(total, na.rm = TRUE)) %>% 
   bind_rows(df_cuerpos) %>% 
   mutate(evento = str_to_title(evento))
+
+
+
 
 # table(df_homicidios$cuerpos_localizados)
 
@@ -453,7 +468,89 @@ ggplot(
 
 
 # Guardar
-ggsave(file = paste_fig("reporte_2022/03_homicidios_tipos.png"))
+ggsave(file = paste_fig("reporte_2022/08a_homicidios_tipos.png"))
+
+#### Estatal -------------------------------------------------------------------
+
+# 
+df_cuerpos_estados <- df_homicidios                         %>% 
+  ungroup()                                                 %>% 
+  group_by(estado)                                          %>% 
+  summarise(total = sum(cuerpos_localizados, na.rm = TRUE)) %>% 
+  mutate(evento = "Cuerpos localizados") %>% 
+  filter(!is.na(estado), estado != "20") 
+
+
+df_plot4 <- df_homicidios                                   %>% 
+  mutate(evento = ataque_armado_clean)                      %>% 
+  group_by(estado, evento)                                  %>% 
+  summarise(total = sum(homic_total, na.rm = TRUE))         %>% 
+  drop_na()                                                 %>% 
+  ungroup()                                                 %>% 
+  bind_rows(df_cuerpos_estados)                             %>% 
+  mutate(evento = str_to_title(evento))                     %>% 
+  filter(!is.na(estado), estado != "20")                    %>% 
+  mutate(
+    estado = str_remove_all(estado, "[:digit:]"))
+
+
+
+# ggplot(
+#   # Datos 
+#   df_plot4, 
+#   # Coordenadas 
+#   aes(x = total, y = evento)) +
+#   facet_wrap(~estado) +
+#   # Geoms 
+#   geom_col() +
+#   geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
+#             # hjust = if_else(df_plot3$total<max(df_plot3$total), -0.2, 1.2),
+#             # color = if_else(df_plot3$total<max(df_plot3$total), "#6F7271", "white"), 
+#             family = "Gotham") +
+#   # Etiquetas
+#   labs(
+#     title = "Homicidios violentos en México", 
+#     subtitle = "Por tipo de evento, Julio - Diciembre 2022\n", 
+#     x = "", 
+#     y = "", 
+#     caption = v_caption
+#   ) +
+#   # Etiquetas 
+#   scale_x_continuous(label = scales::comma_format()) +
+#   # Tema
+#   tema +
+#   theme(axis.text.x = element_text(angle = 0))
+# 
+# ggsave(file = paste_fig("reporte_2022/08b_homicidios_tipos.png"), 
+#        width = 15, height = 8)
+
+ggplot(
+  # Datos 
+  df_plot4, 
+  # Coordenadas 
+  aes(x = total, y = estado)) +
+  facet_wrap(~evento, ncol = 5, scales = "free_x", labeller = label_wrap_gen(width = 16)) +
+  # Geoms 
+  geom_col() +
+  # geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
+  #           family = "Gotham") +
+  # Etiquetas
+  labs(
+    title = "Homicidios violentos en México", 
+    subtitle = "Por tipo de evento, Julio - Diciembre 2022\n", 
+    x = "", 
+    y = "", 
+    caption = v_caption
+  ) +
+  # Etiquetas 
+  scale_x_continuous(label = scales::comma_format()) +
+  scale_y_discrete(limits=rev) +
+  # Tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0))
+
+ggsave(file = paste_fig("reporte_2022/08b_homicidios_tipos.png"), 
+       width = 15, height = 15)
 
 
 # 4. Grupos criminales ---------------------------------------------------------
@@ -669,7 +766,7 @@ df_estados <- df_nombres_limpios %>%
     mes     = lubridate::month(fecha_de_publicacion),
     year_m  = zoo::as.yearmon(paste0(anio, "-", mes)),
     mes = lubridate::month(fecha_de_publicacion, label = TRUE)) %>% 
-  filter(mes != "ene", mes != "jun") 
+  filter(mes != "ene") 
   
 # Guardar los nombres de todas las entidades
 v_estados <- unique(df_estados$estado)
@@ -794,7 +891,7 @@ df_desaparecidos <- df_crudo %>%
     year_m  = zoo::as.yearmon(paste0(anio, "-", mes)),
     mes = lubridate::month(fecha_de_publicacion, label = TRUE)) %>% 
   # Filtrar meses de interés 
-  filter(mes != "ene", mes != "jun") %>% 
+  filter(mes != "ene") %>% 
   select(estado, numero_personas_desaparecidas) %>% 
   group_by(estado) %>% 
   summarize(total_desparecidos = sum(numero_personas_desaparecidas, na.rm = T)) %>% 
