@@ -119,7 +119,7 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Homicidios violentos en México",
-       subtitle = "Julio - Diciembre 2022\n",
+       subtitle = "Junio - Diciembre 2022\n",
        fill = "Número", 
        caption = v_caption) +
   # scale_fill_gradient(low = "white", high = "red", na.value = NA) +
@@ -170,7 +170,7 @@ ggplot(df_barras1,
             family = "Gotham") +
   # Etiquetas
   labs(title = "Homicidios violentos en México",
-       subtitle = "Julio - Diciembre 2022\n",
+       subtitle = "Junio - Diciembre 2022\n",
        x = "", 
        y = "", 
        caption = v_caption) +
@@ -206,7 +206,7 @@ ggplot(
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Julio - Diciembre 2022\n", 
+    subtitle = "Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -238,7 +238,7 @@ ggsave(file = paste_fig("reporte_2022/02_homicidios_serie.png"))
 #   # Etiquetas
 #   labs(
 #     title = "Homicidios violentos en México", 
-#     subtitle = "Julio - Diciembre 2022\n", 
+#     subtitle = "Junio - Diciembre 2022\n", 
 #     x = "", 
 #     y = "", 
 #     caption = v_caption
@@ -283,7 +283,7 @@ ggplot(
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Julio - Diciembre 2022\n", 
+    subtitle = "Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -312,7 +312,7 @@ ggplot(
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Julio - Diciembre 2022\n", 
+    subtitle = "Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -340,7 +340,7 @@ ggplot(
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Julio - Diciembre 2022\n", 
+    subtitle = "Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -383,7 +383,7 @@ ggplot(
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Julio - Diciembre 2022\n", 
+    subtitle = "Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -455,7 +455,7 @@ ggplot(
             # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Por tipo de evento, Julio - Diciembre 2022\n", 
+    subtitle = "Por tipo de evento, Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -510,7 +510,7 @@ df_plot4 <- df_homicidios                                   %>%
 #   # Etiquetas
 #   labs(
 #     title = "Homicidios violentos en México", 
-#     subtitle = "Por tipo de evento, Julio - Diciembre 2022\n", 
+#     subtitle = "Por tipo de evento, Junio - Diciembre 2022\n", 
 #     x = "", 
 #     y = "", 
 #     caption = v_caption
@@ -537,7 +537,7 @@ ggplot(
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
-    subtitle = "Por tipo de evento, Julio - Diciembre 2022\n", 
+    subtitle = "Por tipo de evento, Junio - Diciembre 2022\n", 
     x = "", 
     y = "", 
     caption = v_caption
@@ -819,7 +819,7 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Presencia criminal en México",
-       subtitle = "Entre Julio - Diciembre 2022\n",
+       subtitle = "Entre Junio - Diciembre 2022\n",
        fill = "Número de grupos criminales", 
        caption = "Fuente: Monitor-PPD (2022)") +
   # scale_fill_gradient(low=cols[1],high=cols[2]) +
@@ -860,7 +860,7 @@ ggplot(
             family = "Gotham") +
   # Etiquetas
   labs(title = "Presencia criminal en México",
-       subtitle = "Entre Julio - Diciembre 2022\n",
+       subtitle = "Entre Junio - Diciembre 2022\n",
        x = "\nNúmero de grupos criminales registrados",
        y = "", 
        caption = "Fuente: Monitor-PPD (2022)") +
@@ -911,7 +911,7 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Personsas desaparecidas y/o sin localizar en México",
-       subtitle = "Entre Julio - Diciembre 2022\n",
+       subtitle = "Entre Junio - Diciembre 2022\n",
        fill = "Número", 
        caption = "Fuente: Monitor-PPD (2022)") +
   # scale_fill_gradient(low=cols[1],high=cols[2]) +
@@ -957,7 +957,7 @@ ggplot(
             family = "Gotham") +
   # Etiquetas
   labs(title = "Personas desaparecidas y/o sin localizar en México",
-       subtitle = "Entre Julio - Diciembre 2022\n",
+       subtitle = "Entre Junio - Diciembre 2022\n",
        fill = "Número", 
        x = "", 
        y = "", 
