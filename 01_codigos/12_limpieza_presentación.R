@@ -31,10 +31,31 @@ paste_inp <- function(x){paste0("02_datos_crudos/" , x)}
 paste_out <- function(x){paste0("03_datos_limpios/", x)}
 paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
-# Tema para gráficas 
-tema <- theme_bw() 
+# ---- Tema para gráficas 
+# tema <- theme_bw() 
 
-v_caption <- "Fuente: Monitor- PPD (2022)"
+tema        <-  theme_linedraw() +
+  theme(
+    plot.title.position   = "plot",
+    # plot.caption.position = "plot",
+    text                  = element_text(family = "Source Sans Pro", color = "#6F7271"),
+    plot.title            = element_text(family = "Source Sans Pro", color = "#6F7271",   size = 16,  face  = "bold",  margin = margin(10,5,5,5)),
+    plot.subtitle         = element_text(family = "Source Sans Pro", color = "#98989A",   size = 14,  margin = margin(5, 5, 5, 5)),
+    plot.caption          = element_text(family = "Gotham", color = "#6F7271", size = 10,  hjust = 1),
+    panel.grid            = element_line(linetype = 2),
+    plot.margin           = margin(0, 2, 0, 1.5, "cm"),
+    legend.position       = "top",
+    panel.border          = element_blank(),
+    legend.title          = element_text(size = 11, family = "Gotham", face   = "bold"),
+    legend.text           = element_text(size = 11, family = "Gotham"),
+    axis.title            = element_text(size = 11, family = "Gotham", hjust = .5, margin = margin(1,1,1,1)),
+    axis.text.y           = element_text(size = 11, family = "Gotham", color = "#6F7271", angle=0,  hjust=1),
+    axis.text.x           = element_text(size = 11, family = "Gotham", color = "#6F7271", angle=90, hjust=1, vjust = 0.5),
+    strip.text.x          = element_text(size = 11, family = "Gotham", face = "bold", color = "#6F7271"),
+    strip.text.y          = element_text(size = 11, family = "Gotham", face = "bold", color = "#6F7271"),
+    strip.background      = element_rect(fill = "white", color = NA))
+
+v_caption <- "Fuente: Monitor- PPD (2022)\n"
 
 # 1. Cargar datos --------------------------------------------------------------
 
@@ -99,15 +120,25 @@ ggplot(
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Homicidios violentos en México",
        subtitle = "Julio - Diciembre 2022\n",
-       fill = "Número de homicidios", 
+       fill = "Número", 
        caption = v_caption) +
   # scale_fill_gradient(low = "white", high = "red", na.value = NA) +
-  scale_fill_gradient(low = "white", high = "#d62828", na.value = "grey") +
+  scale_fill_gradient(low = "white", high = "#d62828", na.value = "grey", 
+                      label = scales::comma_format()) +
+  # Tema
+  tema +
+  # Quitar fondo al mapa
   theme(axis.line = element_blank(), 
-        axis.ticks = element_blank(), 
+        axis.ticks = element_blank(),
         axis.text = element_blank(), 
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(),
         axis.title = element_blank(),
-        panel.background = element_rect(fill = "white", colour = NA))
+        panel.grid = element_blank(),
+        panel.background = element_rect(fill = "white", colour = NA)) +
+  # Ampliar largo de la barra 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.key.width = unit(1,"cm")) 
 
 
 # Guardar
@@ -121,16 +152,22 @@ df_barras1 <- df_homicidios %>%
   select(estado, homic_total) %>% 
   group_by(estado) %>% 
   summarize(total_homicidios = sum(homic_total, na.rm = T)) %>% 
-  mutate(region = str_sub(estado, -2, -1))  %>%
+  mutate(
+    region = str_sub(estado, -2, -1), 
+    estado = str_remove_all(estado, "[:digit:]"),
+    estado = str_remove_all(estado, "-"), 
+    )  %>%
   drop_na() %>% 
-  filter(estado != "20")
+  filter(estado != "20", region != "20")  
 
 # figura: mapa
 ggplot(df_barras1, 
        aes(x = total_homicidios, y = reorder(estado, total_homicidios))) +
   geom_col(fill = "#d62828") +
   geom_text(aes(label = scales::comma(total_homicidios)), vjust = +0.4, 
-            hjust = if_else(df_barras1$total_homicidios<max(df_barras1$total_homicidios), -0.2, 1.5)) +
+            hjust = if_else(df_barras1$total_homicidios<max(df_barras1$total_homicidios), -0.2, 1.2), 
+            color = if_else(df_barras1$total_homicidios<max(df_barras1$total_homicidios), "#6F7271", "white"), 
+            family = "Gotham") +
   # Etiquetas
   labs(title = "Homicidios violentos en México",
        subtitle = "Julio - Diciembre 2022\n",
@@ -138,7 +175,8 @@ ggplot(df_barras1,
        y = "", 
        caption = v_caption) +
   scale_x_continuous(label = scales::comma_format()) +
-  tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
   
 # Guardar
 ggsave(file = paste_fig("reporte_2022/01b_homicidios_barras.png"))
@@ -150,7 +188,7 @@ df_plot1 <- df_homicidios %>%
   filter(homic_total > 0) %>% 
   group_by(year_m, mes)   %>% 
   summarise(total = sum(homic_total, na.rm = TRUE)) %>% 
-  filter(mes != "ene", mes != "jun")
+  filter(mes != "ene", mes != "jun") 
 
 # Serie de tiempo 
 ggplot(
@@ -159,8 +197,11 @@ ggplot(
   # Coordenadas
   aes(x = year_m, y = total, group = 1)) +
   # Geoms
-  geom_line() +
-  geom_point() +
+  geom_line(size = 2, color = "#98989A") +
+  geom_point(size = 3, color = "#6F7271") +
+  geom_text(aes(label = scales::comma(total)), 
+            vjust = if_else(df_plot1$mes %in% c("jul", "nov"), 1.7, -1.2),
+            family = "Gotham") +
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
@@ -170,7 +211,7 @@ ggplot(
     caption = v_caption
   ) +
   # Etiquetas 
-  scale_y_continuous(label = scales::comma_format(), limits = c(1400, 2000)) +
+  scale_y_continuous(label = scales::comma_format(), limits = c(1300, 2000)) +
   # Tema
   tema
  
@@ -188,7 +229,11 @@ df_plot2 <- df_homicidios %>%
   summarise(total = sum(homic_total, na.rm = TRUE)) %>% 
   filter(mes != "ene", mes != "jun") %>% 
   drop_na() %>% 
-  filter(estado != "20")
+  filter(estado != "20") %>% 
+  mutate(
+    estado = str_remove_all(estado, "[:digit:]"),
+    estado = str_remove_all(estado, "-")
+  )
 
 
 # Serie de tiempo 
@@ -196,11 +241,11 @@ ggplot(
   # Datos
   df_plot2, 
   # Coordenadas
-  aes(x = year_m, y = total, group = 1)) +
-  facet_wrap(~estado, scale = "free_y") +
+  aes(x = mes, y = total, group = 1)) +
+  facet_wrap(~estado, scale = "free", ncol = 4) +
   # Geoms
-  geom_line() +
-  geom_point() +
+  geom_line(size = 1.2, color = "#98989A") +
+  geom_point(size = 2.2, color = "#6F7271") +
   # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
@@ -215,7 +260,8 @@ ggplot(
   tema
 
 # Guardar
-ggsave(file = paste_fig("reporte_2022/03_homicidios_serie_estados.png"))
+ggsave(file = paste_fig("reporte_2022/03_homicidios_serie_estados.png"), 
+       width = 10, height = 12)
 
 
 ## 3.2 Homicidos por criterios -------------------------------------------------
@@ -247,8 +293,9 @@ ggplot(
   # Geoms 
   geom_col() +
   geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
-            hjust = if_else(df_plot3$total<max(df_plot3$total), -0.2, 1.5),
-            color = if_else(df_plot3$total<max(df_plot3$total), "black", "white")) +
+            hjust = if_else(df_plot3$total<max(df_plot3$total), -0.2, 1.2),
+            color = if_else(df_plot3$total<max(df_plot3$total), "#6F7271", "white"), 
+            family = "Gotham") +
             # Etiquetas
   labs(
     title = "Homicidios violentos en México", 
@@ -260,7 +307,8 @@ ggplot(
   # Etiquetas 
   scale_x_continuous(label = scales::comma_format()) +
   # Tema
-  tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0))
 
 
 # Guardar
@@ -539,41 +587,59 @@ ggplot(
   # scale_fill_gradient(low=cols[1],high=cols[2]) +
   scale_fill_gradient(low = "#7FCCA1", high = "#193F29", na.value = "white", 
                       breaks = seq(0, 40, 10)) +
+  # Tema
+  tema +
+  # Quitar fondo al mapa
   theme(axis.line = element_blank(), 
-        axis.ticks = element_blank(), 
+        axis.ticks = element_blank(),
         axis.text = element_blank(), 
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(),
         axis.title = element_blank(),
-        panel.background = element_rect(fill = "white", 
-                                        colour = NA))
-# ---- Guardar mapa 
+        panel.grid = element_blank(),
+        panel.background = element_rect(fill = "white", colour = NA)) +
+  # Ampliar largo de la barra 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.key.width = unit(1,"cm")) 
+
 ggsave(file = paste_fig("reporte_2022/04_grupos_mapa.png"))
 
 
 ## 4.4. Barras -----------------------------------------------------------------
 
+# Gráfica
 ggplot(
   # Datos
-  df_grupos_entidad %>% rename(total = total_grupos), 
+  df_grupos_entidad %>% 
+    rename(total = total_grupos) %>% 
+    mutate(estado = str_remove_all(estado, "[:digit:]")), 
        aes(x = total, y = reorder(estado, total))) +
   # Geoms
   geom_col(fill = "#193F29") +
-  geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
-            hjust = if_else(df_barras$total<max(df_barras$total), -0.2, 1.5),
-            color = if_else(df_barras$total<max(df_barras$total), "black", "white")) +
+  geom_text(aes(label = scales::comma(total)), vjust = 0.4, size = 3.5, 
+            hjust = if_else(df_grupos_entidad$total<max(df_grupos_entidad$total), -0.4, 1.3),
+            color = if_else(df_grupos_entidad$total<max(df_grupos_entidad$total), "#6F7271", "white"), 
+            family = "Gotham") +
   # Etiquetas
   labs(title = "Presencia criminal en México",
        subtitle = "Entre Julio - Diciembre 2022\n",
-       x = "Número de grupos criminales registrados",
+       x = "\nNúmero de grupos criminales registrados",
        y = "", 
        caption = "Fuente: Monitor-PPD (2022)") +
   # Escalas 
   scale_x_continuous(label = scales::comma_format()) +
   # Tema 
-  tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 
+# Guardar
 ggsave(file = paste_fig("reporte_2022/05_grupos_barras.png"))
 
-# 5. Desaparecidos -------------------------------------------------------------
+
+# 5. Alianzas y rivales --------------------------------------------------------
+
+
+# 6. Desaparecidos -------------------------------------------------------------
 
 
 #### Mapa ----------------------------------------------------------------------
@@ -612,24 +678,33 @@ ggplot(
        caption = "Fuente: Monitor-PPD (2022)") +
   # scale_fill_gradient(low=cols[1],high=cols[2]) +
   scale_fill_gradient(low = "#B6C5CE", high = "#182025", na.value = "white") +
+  # Tema
+  tema +
+  # Quitar fondo al mapa
   theme(axis.line = element_blank(), 
-        axis.ticks = element_blank(), 
+        axis.ticks = element_blank(),
         axis.text = element_blank(), 
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(),
         axis.title = element_blank(),
-        panel.background = element_rect(fill = "white", 
-                                        colour = NA))
+        panel.grid = element_blank(),
+        panel.background = element_rect(fill = "white", colour = NA)) +
+  # Ampliar largo de la barra 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.key.width = unit(1,"cm")) 
 
 ggsave(file = paste_fig("reporte_2022/06_desapariciones_mapa.png"))
 
 #### Barras --------------------------------------------------------------------
 
-df_barras <- df_crudo %>% 
-  # variables de interés
-  select(estado, numero_personas_desaparecidas) %>% 
-  group_by(estado) %>% 
+df_barras <- df_crudo                                               %>% 
+  # variables de interés                    
+  select(estado, numero_personas_desaparecidas)                     %>% 
+  group_by(estado)                                                  %>% 
   summarize(total = sum(numero_personas_desaparecidas, na.rm = T))  %>% 
-  drop_na() %>% 
-  filter(estado != "20")
+  drop_na()                                                         %>% 
+  filter(estado != "20") %>% 
+  mutate(estado = str_remove_all(estado, "[:digit:]"))
 
 ggplot(
   # Datos 
@@ -637,10 +712,11 @@ ggplot(
   # Coordenadas
        aes(x = total, y = reorder(estado, total))) +
   # Geoms
-  geom_col() +
+  geom_col(fill = "#182025") +
   geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
-            hjust = if_else(df_barras$total<max(df_barras$total), -0.2, 1.5),
-            color = if_else(df_barras$total<max(df_barras$total), "black", "white")) +
+            hjust = if_else(df_barras$total<max(df_barras$total), -0.2, 1.2),
+            color = if_else(df_barras$total<max(df_barras$total), "#6F7271", "white"), 
+            family = "Gotham") +
   # Etiquetas
   labs(title = "Personas desaparecidas y/o sin localizar en México",
        subtitle = "Entre Julio - Diciembre 2022\n",
@@ -651,12 +727,14 @@ ggplot(
   # Escalas 
   scale_x_continuous(label = scales::comma_format()) +
   # Tema 
-  tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
   
 ggsave(file = paste_fig("reporte_2022/07_desapariciones_barras.png"))
 
 
-# 6. Autoridades ---------------------------------------------------------------
+
+# 7. Autoridades ---------------------------------------------------------------
 
 # Juntar todas las autoridades registradas 
 v_autoridades <- unique(
