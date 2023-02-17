@@ -571,10 +571,14 @@ df_semicolon <- df_crudo %>%
     # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
     grupo_criminal = str_replace_all(grupo_criminal, ":", ";"), 
     # Contar número de puntos y comas (;)
-    semicolon = str_count(grupo_criminal, ";")) %>% 
-  select(id, semicolon) 
+    semicolon = str_count(grupo_criminal, ";"), 
+    semicolon_rival = str_count(rival, ";"), 
+    semicolon_aliado = str_count(alianza, ";")) %>% 
+  select(id, starts_with("semicolon")) 
 
 max(df_semicolon$semicolon, na.rm = T) # El máximo es 10 grupos criminales 
+max(df_semicolon$semicolon_rival, na.rm = T) # El máximo es 2 rivales
+max(df_semicolon$semicolon_aliado, na.rm = T) # El máximo es 5 grupos criminales 
 
 # Separar los nombres de los grupos criminales en columnas independientes 
 df_nombres <- df_crudo %>% 
@@ -588,16 +592,26 @@ df_nombres <- df_crudo %>%
                                         "grupo7", 
                                         "grupo8",
                                         "grupo9", 
-                                        "grupo10"))
+                                        "grupo10", 
+                                        "grupo11"))  %>% 
+  separate(rival, sep = ";", c("rival1", "rival2", "rival3")) %>% 
+  separate(alianza, sep = ";", c("alianza1", "alianza2", "alianza3", "alianza4", 
+                                 "alianza5", "alianza6")) 
+
+table(df_nombres$grupo11)
+table(df_nombres$grupo12)
 
 
 ## 4.2. Limpiar nombres --------------------------------------------------------
 
 # ---- Agrupar todos los nombres distintos 
 v_grupos <- unique(
-  c(df_nombres$grupo1, df_nombres$grupo2, df_nombres$grupo3, df_nombres$grupo4, 
-    df_nombres$grupo5, df_nombres$grupo6, df_nombres$grupo7, df_nombres$grupo8, 
-    df_nombres$grupo9, df_nombres$grupo10))
+  c(df_nombres$grupo1, df_nombres$grupo2 , df_nombres$grupo3 , df_nombres$grupo4, 
+    df_nombres$grupo5, df_nombres$grupo6 , df_nombres$grupo7 , df_nombres$grupo8, 
+    df_nombres$grupo9, df_nombres$grupo10, df_nombres$grupo11, 
+    df_nombres$rival1, df_nombres$rival2, df_nombres$rival3,
+    df_nombres$alianza1, df_nombres$alianza2, df_nombres$alianza3, 
+    df_nombres$alianza4, df_nombres$alianza5, df_nombres$alianza6))
 
 # Hay muchos casos donde el nombre comienza con un espacio (" ")
 
@@ -744,11 +758,35 @@ df_nombres_limpios <- df_nombres %>%
   mutate(across(starts_with("grupo"), ~limpiar_grupos(.)))  %>% 
   # Quitar espacios en blanco al inicio y final (función trimws)
   mutate(across(starts_with("grupo"), ~trimws(.))) %>% 
+  # Quitar observaciones que solo tienen un punto (".")
+  mutate(across(starts_with("grupo"), ~if_else(. == ".", NA_character_, .))) %>%          
+  mutate(across(starts_with("grupo"), ~if_else(. == "na", NA_character_, .))) %>%          
   # Convertir autodefensas, alias y guardia civil a NAs
   mutate(across(starts_with("grupo"), ~if_else(. %in% c("autodefensas", 
                                                         "alias", 
                                                         "Guardia Civil"), 
-                                               NA_character_, .))) 
+                                               NA_character_, .)))  %>% 
+  # Rivales
+  mutate(across(starts_with("rival"), ~clasificar_grupos(.))) %>% 
+  mutate(across(starts_with("rival"), ~limpiar_grupos(.)))  %>% 
+  mutate(across(starts_with("rival"), ~trimws(.))) %>% 
+  mutate(across(starts_with("rival"), ~if_else(. == ".", NA_character_, .))) %>%          
+  mutate(across(starts_with("rival"), ~if_else(. == "na", NA_character_, .))) %>%          
+  mutate(across(starts_with("rival"), ~if_else(. %in% c("autodefensas", 
+                                                        "alias", 
+                                                        "Guardia Civil"), 
+                                               NA_character_, .)))  %>% 
+  # Alianzas
+  mutate(across(starts_with("alianza"), ~clasificar_grupos(.))) %>% 
+  mutate(across(starts_with("alianza"), ~limpiar_grupos(.)))  %>% 
+  mutate(across(starts_with("alianza"), ~trimws(.))) %>% 
+  mutate(across(starts_with("alianza"), ~if_else(. == ".", NA_character_, .))) %>%          
+  mutate(across(starts_with("alianza"), ~if_else(. == "na", NA_character_, .))) %>%          
+  mutate(across(starts_with("alianza"), ~if_else(. %in% c("autodefensas", 
+                                                        "alias", 
+                                                        "Guardia Civil"), 
+                                               NA_character_, .)))
+
 
 # ---- Agrupar todos los nombres distintos después de la limpieza
 v_grupos_limpios <- unique(
@@ -756,7 +794,14 @@ v_grupos_limpios <- unique(
     df_nombres_limpios$grupo3, df_nombres_limpios$grupo4, 
     df_nombres_limpios$grupo5, df_nombres_limpios$grupo6, 
     df_nombres_limpios$grupo7, df_nombres_limpios$grupo8, 
-    df_nombres_limpios$grupo9, df_nombres_limpios$grupo10))
+    df_nombres_limpios$grupo9, df_nombres_limpios$grupo10, 
+    df_nombres_limpios$rival1, df_nombres_limpios$rival2, 
+    df_nombres_limpios$rival3, df_nombres_limpios$alianza1, 
+    df_nombres_limpios$alianza2, df_nombres_limpios$alianza3,
+    df_nombres_limpios$alianza4, df_nombres_limpios$alianza5,
+    df_nombres_limpios$alianza6))
+
+print(v_grupos_limpios)
 
 ## 4.3. Mapa -------------------------------------------------------------------
 
@@ -794,7 +839,11 @@ for(i in 1:length(v_estados)){
       df_entidad$grupo3, df_entidad$grupo4, 
       df_entidad$grupo5, df_entidad$grupo6, 
       df_entidad$grupo7, df_entidad$grupo8, 
-      df_entidad$grupo9, df_entidad$grupo10)) 
+      df_entidad$grupo9, df_entidad$grupo10, df_entidad$grupo11, 
+      df_entidad$rival1, df_entidad$rival2, df_entidad$rival3, 
+      df_entidad$alianza1, df_entidad$alianza2, df_entidad$alianza3, 
+      df_entidad$alianza4, df_entidad$alianza5, df_entidad$alianza6
+      )) 
   
   # Quitar valor NA
   v_grupos_estado <- v_grupos_estado[!is.na(v_grupos_estado)]
