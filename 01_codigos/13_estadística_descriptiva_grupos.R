@@ -213,7 +213,8 @@ df_nombres <- df_crudo %>%
                                         "grupo7", 
                                         "grupo8",
                                         "grupo9", 
-                                        "grupo10"))
+                                        "grupo10")) %>% 
+  rename(grupo11 = rival, grupo12 = alianza)
 
 
 ## 4.2. Limpiar nombres --------------------------------------------------------
@@ -225,12 +226,14 @@ df_limpia <- df_nombres                                       %>%
   # Limpiar nombres específicos de grupos criminales
   mutate(across(starts_with("grupo"), ~limpiar_grupos(.)))    %>% 
   # Quitar espacios en blanco al inicio y final (función trimws)
-  mutate(across(starts_with("grupo"), ~trimws(.)))            %>% 
+  mutate(across(starts_with("grupo"), ~trimws(.)))            %>%
+  mutate(across(starts_with("grupo"), ~if_else(. == ".", NA_character_, .))) %>%          
   # Convertir autodefensas, alias y guardia civil a NAs
   mutate(across(starts_with("grupo"), ~if_else(. %in% c("autodefensas", 
                                                         "alias", 
                                                         "Guardia Civil"), 
-                                               NA_character_, .))) 
+                                               NA_character_, .)))  %>% 
+  rename(rival = grupo11, alianza = grupo12)
 
 ## 2.3. Revisar ----------------------------------------------------------------
 
@@ -244,12 +247,12 @@ dim(df_limpia)
 v_grupos <- unique(
   c(df_nombres$grupo1, df_nombres$grupo2, df_nombres$grupo3, df_nombres$grupo4, 
     df_nombres$grupo5, df_nombres$grupo6, df_nombres$grupo7, df_nombres$grupo8, 
-    df_nombres$grupo9, df_nombres$grupo10)) # Hay 297 grupos (versión sucia)
+    df_nombres$grupo9, df_nombres$grupo10, df_nombres$grupo11, df_nombres$grupo12)) # Hay 297 grupos (versión sucia)
 
 v_grupos_limpios <- unique(
   c(df_limpia$grupo1, df_limpia$grupo2, df_limpia$grupo3, df_limpia$grupo4, 
     df_limpia$grupo5, df_limpia$grupo6, df_limpia$grupo7, df_limpia$grupo8, 
-    df_limpia$grupo9, df_limpia$grupo10)) # Hay 131 grupos (sin contar NA)
+    df_limpia$grupo9, df_limpia$grupo10, df_limpia$rival, df_limpia$alianza)) # Hay 131 grupos (sin contar NA)
 
 
 ## 2.4. Guardar nombres limpios ------------------------------------------------
@@ -296,5 +299,9 @@ df_grupos_entidad <- as.data.frame(
   select(grupo = Var2, estado = Var1, menciones = Freq) %>% 
   arrange(grupo, desc(menciones))
 
+
+df_grupos_conteo_entidad <- df_grupos_entidad %>% 
+  group_by(grupo) %>% 
+  summarise(num_estados = n())
 
 # FIN. -------------------------------------------------------------------------
