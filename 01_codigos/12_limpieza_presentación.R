@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          15 de febrero de 2023
-# Última actualización:       15 de febrero de 2023
+# Última actualización:       16 de febrero de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -196,12 +196,12 @@ ggplot(
   # Datos
   df_plot1, 
   # Coordenadas
-  aes(x = year_m, y = total, group = 1)) +
+  aes(x = as.Date(year_m), y = total, group = 1)) +
   # Geoms
   geom_line(size = 2, color = "#98989A") +
   geom_point(size = 3, color = "#6F7271") +
   geom_text(aes(label = scales::comma(total)), 
-            vjust = if_else(df_plot1$mes %in% c("jul", "nov"), 1.7, -1.2),
+            vjust = if_else(df_plot1$mes %in% c("jun", "nov"), 1.8, -1.2),
             family = "Gotham") +
   # Etiquetas
   labs(
@@ -212,13 +212,17 @@ ggplot(
     caption = v_caption
   ) +
   # Etiquetas 
-  scale_y_continuous(label = scales::comma_format(), limits = c(1300, 2000)) +
-  # scale_x_date(breaks = c(1:6)) +
-  zoo::scale_x_yearmon(breaks = seq(min(df_plot1$year_m), max(df_plot1$year_m), 1)) + 
+  scale_y_continuous(label = scales::comma_format(), limits = c(800, 2000)) +
+  scale_x_date(
+    labels = scales::date_format("%b %Y"),
+    limits = c(as.Date(unique(df_plot1$year_m)[1]),
+                       as.Date(unique(df_plot1$year_m)[length(unique(df_plot1$year_m))])), 
+    breaks = seq.Date(as.Date(unique(df_plot1$year_m)[1]),
+                      as.Date(unique(df_plot1$year_m)[length(unique(df_plot1$year_m))]), 
+                      "1 month")) +
   # Tema
   tema
- 
-# zoo::scale_x_yearqtr(breaks = seq(min(d$fecha_t), max(d$fecha_t),1), 
+
 
 # Guardar
 ggsave(file = paste_fig("reporte_2022/02_homicidios_serie.png"))
@@ -434,7 +438,7 @@ df_plot3 <- df_homicidios %>%
   group_by(evento) %>% 
   summarise(total = sum(total, na.rm = TRUE)) %>% 
   bind_rows(df_cuerpos) %>% 
-  mutate(evento = str_to_title(evento))
+  mutate(evento = str_to_sentence(evento))
 
 
 
@@ -974,15 +978,181 @@ ggsave(file = paste_fig("reporte_2022/07_desapariciones_barras.png"))
 
 # 7. Autoridades ---------------------------------------------------------------
 
-# Juntar todas las autoridades registradas 
+## 7.1. Limpiar  ---------------------------------------------------------------
+
+#---- Juntar todas las autoridades registradas 
 v_autoridades <- unique(
   c(df_crudo$autoridad1, df_crudo$autoridad2, df_crudo$autoridad3, 
     df_crudo$autoridad4, df_crudo$autoridad5))
 
-# Lista de autoridades civiles
+#---- Función para clasificar autoridad 
+clasificar_autoridad <- function(x){
+  
+  # Vectores con los nombres
+  v_civil <- c(
+    "municipal", "guardia civil", "guardia de proximidad", "protección civil", 
+    "vial", "tránsito", "federal", "investigación", "aduana", "ministerial", 
+    "fiscalía", "UECS", "AIC", "comisionado de seguridad", "PGJ", "estatal",
+    "preventiva", "INM", "mando único", "SSC", "PGJE", "PGR", "penal", "ANAM")
+  
+  v_militar <- c("sedena", "semar", "GN")
+  
+  v_ambos <- c("operativo blindaje", "BOMU", "BOI")
+  
+  
+  case_when(
+        x %in% v_civil   ~ "institución civil",
+        x %in% v_militar ~ "fuerzas armadas",
+        x %in% v_ambos   ~ "Operativos Conjuntos", 
+        x == x  ~ x)
+  
+  # Autoridad 2
+}
 
-# Lista de autoridades militares 
+
+#---- Recodificar 
+df_autoridad <- df_crudo                                        %>% 
+  # Variables de tiempo 
+  mutate(
+    mes     = lubridate::month(fecha_de_publicacion),
+    anio    = lubridate::year(fecha_de_publicacion),
+    year_m  = zoo::as.yearmon(paste0(anio, "-", mes)),
+    mes = lubridate::month(fecha_de_publicacion, label = TRUE)) %>% 
+  # Filtrar para periodo de interés
+  filter(anio != 2023)                                          %>% 
+  # Clasificar autoridades
+  mutate(across(starts_with("autoridad"), ~clasificar_autoridad(.))) 
 
 
+# table(df_autoridad$mes)
+
+# ---- Revisar nombres codificados
+v_autoridades <- unique(
+  c(df_autoridad$autoridad1, df_autoridad$autoridad2, df_autoridad$autoridad3, 
+    df_autoridad$autoridad4, df_autoridad$autoridad5))
+
+
+## 7.2. Gráficas ---------------------------------------------------------------
+
+#### Total de menciones --------------------------------------------------------
+
+df_plot5 <- df_autoridad %>% 
+  select(fecha_de_publicacion, mes, year_m, estado, starts_with("autoridad")) %>% 
+  pivot_longer(cols = starts_with("autoridad"), 
+               names_to  = "n", 
+               values_to = "autoridad") %>% 
+  drop_na(autoridad) %>% 
+  group_by(autoridad) %>% 
+  summarise(total = n()) %>% 
+  mutate(autoridad = str_to_title(autoridad))
+
+ggplot(df_plot5, 
+       aes(x = total, y = reorder(autoridad, total), fill = autoridad)) +
+  geom_col() +
+  geom_text(aes(label = scales::comma(total)), vjust = +0.4, 
+            hjust = if_else(df_plot5$total<max(df_plot5$total), -0.2, 1.2), 
+            color = if_else(df_plot5$total<max(df_plot5$total), "#6F7271", "white"), 
+            family = "Gotham") +
+  # Etiquetas
+  labs(title = "Intervención de autoridades",
+       subtitle = "Junio - Diciembre 2022\n",
+       x = "", 
+       y = "", 
+       label = "Autoridad",
+       caption = v_caption) +
+  # Escalas
+  scale_x_continuous(label = scales::comma_format()) +
+  scale_fill_manual(values = c("#283618", "#003049", "#bc6c25")) +
+  # Tema 
+  tema +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+ggsave(file = paste_fig("reporte_2022/09_autoridades_total.png"))
+
+#### Total por mes -------------------------------------------------------------
+
+df_plot6 <- df_autoridad %>% 
+  select(fecha_de_publicacion, mes, year_m, estado, starts_with("autoridad")) %>% 
+  pivot_longer(cols = starts_with("autoridad"), 
+               names_to  = "n", 
+               values_to = "autoridad") %>% 
+  drop_na(autoridad) %>% 
+  group_by(year_m, mes, autoridad) %>% 
+  summarise(total = n()) %>% 
+  mutate(autoridad = str_to_title(autoridad))
+
+table(df_plot6$mes)
+
+
+ggplot(df_plot6, 
+       aes(x = as.Date(year_m), y = total, fill = autoridad)) +
+  geom_col() +
+  geom_text(aes(label = total), color = "white", family = "Gotham",
+            position = position_stack(0.5)) +
+  # Etiquetas
+  labs(title = "Intervención de autoridades",
+       subtitle = "Junio - Diciembre 2022\n",
+       x = "", 
+       y = "", 
+       fill = "Autoridad",
+       caption = v_caption) +
+  # Escalas
+  scale_fill_manual(values = c("#283618", "#003049", "#bc6c25")) +
+  scale_x_date(
+    labels = scales::date_format("%b %Y"),
+    # limits = c(as.Date(unique(df_plot6$year_m)[1]-0.005),
+    #            as.Date(unique(df_plot6$year_m)[length(unique(df_plot6$year_m))]+0.005)),
+    breaks = seq.Date(as.Date(unique(df_plot6$year_m)[1]),
+                      as.Date(unique(df_plot6$year_m)[length(unique(df_plot6$year_m))]),
+                      "1 month")
+    ) +
+  # Tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+
+
+ggsave(file = paste_fig("reporte_2022/10_autoridades_mes.png"))
+  
+#### Total por estado ----------------------------------------------------------
+
+df_plot7 <- df_autoridad %>% 
+  select(fecha_de_publicacion, mes, year_m, estado, starts_with("autoridad")) %>% 
+  pivot_longer(cols = starts_with("autoridad"), 
+               names_to  = "n", 
+               values_to = "autoridad") %>% 
+  drop_na(autoridad) %>% 
+  group_by(estado, autoridad) %>% 
+  summarise(total = n()) %>% 
+  mutate(autoridad = str_to_title(autoridad)) %>% 
+  drop_na(estado) %>% 
+  mutate(estado = str_remove_all(estado, "[:digit:]")) %>% 
+  ungroup() %>% 
+  group_by(estado) %>% 
+  mutate(total_estado = sum(total))
+
+
+ggplot(df_plot7, 
+       aes(x = total, y = reorder(estado, total_estado), fill = autoridad)) +
+  geom_col() +
+  geom_text(aes(label = total), color = "white", family = "Gotham",
+            position = position_stack(0.5), size = 3) +
+  # Etiquetas
+  labs(title = "Intervención de autoridades",
+       subtitle = "Junio - Diciembre 2022\n",
+       x = "", 
+       y = "", 
+       fill = "Autoridad",
+       caption = v_caption) +
+  # Escalas
+  scale_fill_manual(values = c("#283618", "#003049", "#bc6c25")) +
+  # Tema
+  tema +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+
+
+ggsave(file = paste_fig("reporte_2022/11_autoridades_estado.png"))
+
+  
 # FIN. -------------------------------------------------------------------------
-
