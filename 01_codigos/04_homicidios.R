@@ -56,6 +56,6 @@ homicidios_enero <- df_hom2 %>%
 # Verificación
 sum(homicidios_enero$total_homicidios) # Homicidios: 1,500
 
-
+# Guardar base
 openxlsx::write.xlsx(homicidios_enero, file = paste_out("homicidios_enero.xlsx"), overwrite = T)
 
