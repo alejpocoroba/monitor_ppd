@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       10 de febrero de 2023
+# Última actualización:       03 de marzo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2023
@@ -33,7 +33,7 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 # 1. Cargar datos --------------------------------------------------------------
 
 #junio
-m1 <- read_xlsx(paste_inp("Monitor_PPD_ene_feb_10.02.xlsx"))
+m1 <- read_xlsx(paste_inp("Monitor_PPD_03.03.23.xlsx"))
 
 # 2. Procesamiento 
 
@@ -51,7 +51,7 @@ df_ <- m1 %>%
 # 3. Cifras de captura ---------------------------------------------------
 ## Periodo junio a noviembre----
 # Total de observaciones 
-paste0("Número total de observaciones entre enero y febrero 2023: ", dim(df_)[1])
+paste0("Número total de observaciones entre enero y marzo 2023: ", dim(df_)[1])
 
 # Total de obsveraciones por mes
 table(df_$mes)
@@ -103,7 +103,7 @@ df_data1 <- df_ %>%
 # Por estado, publicación y responsable
 ggplot(
   # Datos
-  df_data1 %>% filter(publicacion> as.Date("2023-01-01"), publicacion< as.Date("2023-02-28")), 
+  df_data1 %>% filter(publicacion> as.Date("2023-01-01"), publicacion< as.Date("2023-03-31")), 
   # Coordenadas 
   aes(x = publicacion, y = total, fill = responsable)) +
   facet_wrap(~estado, ncol = 8) +
@@ -116,7 +116,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 10/02/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 03/03/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
