@@ -98,12 +98,15 @@ df_data1 <- df_ %>%
   summarise(
     total = n()) %>% 
   filter(!is.na(estado)) %>% 
-  drop_na()
+  drop_na()  %>% 
+  # Agregar variable de mes para facilitar filtros de fechas 
+  mutate(mes = lubridate::month(publicacion, label = TRUE))
+
 
 # Por estado, publicación y responsable
 ggplot(
   # Datos
-  df_data1 %>% filter(publicacion> as.Date("2023-01-01"), publicacion< as.Date("2023-03-31")), 
+  df_data1 %>% filter(mes == "mar"), 
   # Coordenadas 
   aes(x = publicacion, y = total, fill = responsable)) +
   facet_wrap(~estado, ncol = 8) +
@@ -132,7 +135,7 @@ ggsave(file = paste_fig("01_captura_general_2023.png"),
 # Meses - 2023
 ## Captura desagregado----
 # Procesamiento 
-for(i in 1:2) {
+for(i in 1:3) {
   df_data <- df_ %>% 
     filter(mes == i) %>% 
     group_by(publicacion, estado, responsable) %>% 
@@ -145,7 +148,7 @@ for(i in 1:2) {
   # Por día, mes, estado y responsable
   ggplot(
     # Datos
-    df_data %>% filter(publicacion> as.Date("2023-01-31"), publicacion< as.Date("2023-02-28")), 
+    df_data, 
     # Coordenadas 
     aes(x = publicacion, y = total, fill = responsable)) +
     facet_wrap(~estado, ncol = 8) +
