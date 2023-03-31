@@ -1,11 +1,11 @@
 #------------------------------------------------------------------------------#
 # Proyecto:                   Monitor PPD
-# Objetivo:                   Grupos criminales 2022
+# Objetivo:                   Grupos criminales 2023
 #
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          02 de marzo de 2023
-# Última actualización:       07 de marzo de 2023
+# Última actualización:       28 de marzo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD 
@@ -56,13 +56,24 @@ tema        <-  theme_linedraw() +
     strip.background      = element_rect(fill = "white", color = NA))
 
 # 1. Cargar datos --------------------------------------------------------------
-df_crudo <- read_xlsx(paste_inp("base_monitorPPD_2sem2022.xlsx"))
+df_crudo <- read_xlsx(paste_inp("Monitor_PPD_01_02.23.xlsx"))
 
 ## 2.1. Funciones de limpieza --------------------------------------------------
-# interes: id, enlace, publicación, estado, municipio y grupos (ali y riv)
+# limpieza de las variables de interés
 df_crudo <- df_crudo %>% 
-  select(id, fecha_de_publicacion, enlace, estado, municipio,
+  janitor::clean_names() %>% 
+  rename("fecha_de_publicacion"  = "x1_2_1_fecha_publicacion",
+         "enlace"                = "x1_2_2_enlace",
+         "estado"                = "x1_3_2_estado",
+         "municipio"             = "x1_3_3_municipio",
+         "grupo_criminal"        = "x3_3_grupo_criminal",
+         "alianza"               = "x3_3_1_alianza_grupo",
+         "rival"                 = "x3_3_2_rival_grupo")  %>% 
+  # Agregar variable de mes para facilitar filtros de fechas 
+  mutate(mes = lubridate::month(fecha_de_publicacion, label = TRUE)) %>% 
+  select(fecha_de_publicacion, enlace, estado, municipio,
          grupo_criminal, alianza, rival)
+
 
 #---- Función para clasificar si es un grupo armado, autodefensas o un alias
 
@@ -146,10 +157,13 @@ limpiar_grupos <- function(x){
     x  == " Cártel Jalisco Nueva Generación"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
     x  == " CJNG"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
     x  == "CJNG"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == "CJNG" ~ "Cártel Jalisco Nueva Generación (CJNG)",
     x  == " El Cártel Jalisco Nueva Generación"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
     x  == "cártel Jalisco Nueva Generación" ~ "Cártel Jalisco Nueva Generación (CJNG)", 
     x  == "Cártel Jalisco Nueva Generación"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
     x  == "el Cantinflas; CJNG"  ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    x  == " Cártel Jalisco Nueva Generación" ~ "Cártel Jalisco Nueva Generación (CJNG)",
+    #x  == "CJGN "Fuerzas especiales del Mencho""  ~ "Fuerzas Especiales del Mencho",
     x  == "Los pájaros sierra"  ~ "Pájaros Sierra",
     x  == " líder de Pájaros Sierra"  ~ "Pájaros Sierra",
     x  == "Cártel Los Alemanes de Los Zetas" ~ "Cártel Los Alemanes", 
@@ -195,6 +209,8 @@ limpiar_grupos <- function(x){
     x  == "Los Chapos Trinis" ~ "Cártel de Sinaloa",
     x  == "cártel del pacífico" ~ "Cártel de Sinaloa",
     x  == "Los Chapitos" ~ "Cártel de Sinaloa / Los Chapitos",
+    x  == "	La Chapiza"  ~ "Cártel de Sinaloa / Los Chapitos",
+    x  == "La Chapiza" ~ "Cártel de Sinaloa / Los Chapitos",
     x  == "grupo El Jale Azul / El Sargento Huracán" ~ "Grupo El Jale Azul",
     x  == "Escorpiones" ~ "Grupo Scorpion",
     x  == "La Plaza" ~ "Cártel La Plaza",
@@ -202,6 +218,7 @@ limpiar_grupos <- function(x){
     x  == " Los Viagras" ~ "Los Viagras",
     x  == "Los correa" ~ "Cártel de los Correa",
     x  == "Los Correa" ~ "Cártel de los Correa",
+    x  == " Los correa" ~ "Cártel de los Correa",
     x  == "cártel de Los Correa" ~ "Cártel de los Correa",
     x  == "“El Tigre” Correa, líder máximo del cártel que lleva el apellidos de la familia" ~ "Cártel de los Correa", 
     x  == " Célula delictiva del Mamer" ~ "Grupo del Mamer",
@@ -216,6 +233,13 @@ limpiar_grupos <- function(x){
     x  == "Los Artistas Asesinos" ~ "Artistas Asesinos",
     x  == "Tlacos del Cártel de la Sierra" ~ "Cártel de la Sierra",
     x  == " Cártel Sangre Nueva Zeta" ~ "Sangre Nueva Zeta",
+    x  == "GDC" ~ "Gente Del Chaparrito (GDC)",
+    x  == "Los maseros" ~ "Los Maseros",
+    x  == "banda delictiva de “El Malverde”" ~ "Banda de El Malverde",
+    x  == "El pueblo" ~ "El Pueblo", 
+    x  == "	la mera verga" ~ "La Mera Verga",
+    x  == "la mera verga" ~ "La Mera Verga",
+    x  == "Nueva alianza" ~ "Nueva Alianza",
     x  == x ~ x
   )
   
@@ -230,27 +254,16 @@ df_semicolon <- df_crudo %>%
     grupo_criminal = str_replace_all(grupo_criminal, ":", ";"), 
     # Contar número de puntos y comas (;)
     semicolon = str_count(grupo_criminal, ";")) %>% 
-  select(id, semicolon) 
+  select(semicolon) 
 
-max(df_semicolon$semicolon, na.rm = T) # El máximo es 10 grupos criminales 
+max(df_semicolon$semicolon, na.rm = T) # El máximo es 1 grupos criminales 
 
 # Separar los nombres de los grupos criminales en columnas independientes 
 df_nombres <- df_crudo %>% 
   mutate(grupo_criminal = str_replace_all(grupo_criminal, ":", ";")) %>% 
-  separate(grupo_criminal, sep = ";", c("grupo1", 
-                                        "grupo2", 
-                                        "grupo3", 
-                                        "grupo4", 
-                                        "grupo5", 
-                                        "grupo6", 
-                                        "grupo7", 
-                                        "grupo8",
-                                        "grupo9", 
-                                        "grupo10", 
-                                        "grupo11"))  %>% 
-  separate(rival, sep = ";", c("rival1", "rival2", "rival3")) %>% 
-  separate(alianza, sep = ";", c("alianza1", "alianza2", "alianza3", "alianza4", 
-                                 "alianza5", "alianza6")) 
+  separate(grupo_criminal, sep = ";", c("grupo1", "grupo2" ))  %>% 
+  separate(rival, sep = ";", c("rival1", "rival2")) %>% 
+  separate(alianza, sep = ";", c("alianza1", "alianza2")) 
 
 ## 4.2. Limpiar nombres --------------------------------------------------------
 df_limpia <- df_nombres %>% 
@@ -322,17 +335,17 @@ v_grupos_limpios <- unique(
 
 # Seleccionar variables de interés y pasarlo a formato largo 
 df_larga <- df_limpia %>% 
-  select(id, fecha = fecha_de_publicacion, estado, starts_with("grupo")) %>% 
+  select(fecha = fecha_de_publicacion, estado, starts_with("grupo")) %>% 
   pivot_longer(cols = c(starts_with("grupo"), starts_with("alianza"), starts_with("rival")),
                names_to  = "num", 
                values_to = "grupo") %>% 
   drop_na(grupo)
 
-# ---- Número de grupos: 125
+# ---- Número de grupos: 37
 length(unique(df_larga$grupo))
 
 # ---- Lista de grupos 
-lista_grupos2022 <- data.frame(unique(df_larga$grupo))
+lista_grupos2023 <- data.frame(unique(df_larga$grupo))
 
 # Base de la lista de grupos 
 openxlsx::write.xlsx(lista_grupos2022, 
@@ -340,9 +353,9 @@ openxlsx::write.xlsx(lista_grupos2022,
 
 # Presencia en estados por grupo 
 # Procesamiento
-# Estados sin presencia: 6, 10, 15, 20, 27, 29, 31
-estados_faltan <- data.frame("estado" = c("Colima-06", "Durango-10", "Estado de México-15", 
-                                          "Oaxaca-20", "Tabasco-27", "Tlaxcala-29", "Yucatán-31"),
+# Estados sin presencia: 5, 13, 20, 22, 29, 31, 32
+estados_faltan <- data.frame("estado" = c("Coahuila-05", "Hidalgo-13", "Oaxaca-20", 
+                                          "Querétaro-22", "Tlaxcala-29", "Yucatán-31", "Zacatecas-32"),
                              "total_grupos" =  NA_real_)
 
 # Número de grupos por estado
@@ -377,9 +390,9 @@ ggplot(
   coord_map() +
   geom_polygon(color = "black", size = .2, show.legend = T, alpha = 1) +
   labs(title = "Presencia criminal en México",
-       subtitle = "Junio - Diciembre 2022\n",
+       subtitle = "Enero - Febrero 2023\n",
        fill = "Número", 
-       caption = "Fuente: Monitor-PPD (2022)") +
+       caption = "Fuente: Monitor-PPD (2023)") +
   scale_fill_gradient(low = "#7FCCA1", high = "#193F29", na.value = "white", 
                       breaks = seq(0, 40, 10)) +
   # Tema
