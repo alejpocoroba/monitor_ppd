@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       30 de marzo de 2023
+# Última actualización:       20 de abril de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2023
@@ -32,22 +32,20 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
 # 1. Cargar datos --------------------------------------------------------------
 
-# Enero - marzo 2023
-a <- read_xlsx(paste_inp("Monitor_PPD_01_02.23.xlsx"))
-b <- read_xlsx(paste_inp("Monitor_PPD_03.xlsx")) # al 24/03
+# abril al día 20
+a <- read_xlsx(paste_inp("Monitor_PPD_04.xlsx"))
 
 # Se unen bases 
-m1 <- a %>%
-  bind_rows(b)
+# m1 <- a %>% bind_rows(b)
 
 # 2. Procesamiento 
 
 # limpiar nombres de microdatos
-df_ <- m1 %>% 
+df_ <- a %>% 
   janitor::clean_names() %>% 
-  select("responsable" = "x1_1_responsable",
-         "publicacion" = "x1_2_1_fecha_publicacion",
-         "estado"      = "x1_3_2_estado") %>% 
+  select("responsable" = "responsable",
+         "publicacion" = "fecha",
+         "estado"      = "estado") %>% 
   # modificaciones sobre fecha: mes
   mutate(mes = lubridate::month(publicacion)) %>% 
   mutate(
@@ -56,7 +54,7 @@ df_ <- m1 %>%
 # 3. Cifras de captura ---------------------------------------------------
 ## Periodo junio a noviembre----
 # Total de observaciones 
-paste0("Número total de observaciones entre enero y marzo 2023: ", dim(df_)[1])
+paste0("Número total de observaciones de abril 2023: ", dim(df_)[1])
 
 # Total de obsveraciones por mes
 table(df_$mes)
@@ -124,7 +122,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 30/03/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 20/04/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -140,7 +138,7 @@ ggsave(file = paste_fig("01_captura_general_2023.png"),
 # Meses - 2023
 ## Captura desagregado----
 # Procesamiento 
-for(i in 1:3) {
+for(i in 1:1) {
   df_data <- df_ %>% 
     filter(mes == i) %>% 
     group_by(publicacion, estado, responsable) %>% 
@@ -166,7 +164,7 @@ for(i in 1:3) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 30/03/23 ")
+      caption = paste0("Fuente: Monitor-PPD al 20/04/23 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +
