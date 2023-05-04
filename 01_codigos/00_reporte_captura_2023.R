@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       20 de abril de 2023
+# Última actualización:       03 de mayo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2023
@@ -122,7 +122,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 20/04/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 03/05/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -138,7 +138,7 @@ ggsave(file = paste_fig("01_captura_general_2023.png"),
 # Meses - 2023
 ## Captura desagregado----
 # Procesamiento 
-for(i in 1:1) {
+for(i in 4:5) {
   df_data <- df_ %>% 
     filter(mes == i) %>% 
     group_by(publicacion, estado, responsable) %>% 
@@ -164,7 +164,7 @@ for(i in 1:1) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 20/04/23 ")
+      caption = paste0("Fuente: Monitor-PPD al 03/05/23 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +

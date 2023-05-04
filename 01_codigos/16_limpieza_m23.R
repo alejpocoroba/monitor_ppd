@@ -123,10 +123,10 @@ df_gc <- df_1 %>%
     # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
     grupo_criminal = str_replace_all(grupo_criminal, ":", ";"), 
     # Contar número de puntos y comas (;)
-    semicolon = str_count(grupo_criminal, ";")) %>% 
-  select(semicolon) 
+    grupo_criminal = str_count(grupo_criminal, ";")) %>% 
+  select(grupo_criminal) 
 
-max(df_semicolon$semicolon, na.rm = T) # El máximo es 2 grupos criminales 
+max(df_gc$grupo_criminal, na.rm = T) # El máximo es 1 grupos criminales 
 
 # Separar los nombres de los grupos criminales en columnas independientes 
 df_gc <- df_1 %>% 
@@ -690,6 +690,7 @@ openxlsx::write.xlsx(df_lu,
                      file = paste_out("m_ene_mar_23_lim.xlsx"))
 
 
+beepr::beep(9)
 # Fin--------------------------------------------------------------------------- 
 
 
