@@ -47,3 +47,14 @@ df_crudo <- df_crudo %>%
          grupo_criminal, alianza, rival)
 
 
+df_gc <- df_gc %>% 
+  mutate(grupo1   = limpiar_grupos(grupo1),
+         grupo2   = limpiar_grupos(grupo2),
+         alianza1 = limpiar_grupos(alianza2),
+         alianza2 = limpiar_grupos(alianza2),
+         alianza3 = limpiar_grupos(alianza3),
+         alianza4 = limpiar_grupos(alianza4),
+         alianza5 = limpiar_grupos(alianza5),
+         rival1   = limpiar_grupos(rival1),
+         rival2   = limpiar_grupos(rival2),
+         rival3   = limpiar_grupos(rival3))
