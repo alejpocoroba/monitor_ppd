@@ -248,8 +248,6 @@ unique(df_gc$rival1)
 unique(df_gc$rival2)
 
 ### 3.2. Persona (homicidios + heridxs)-----------------------------------------
-#base inicia df_gc y termina con df_p
-
 # homicidios 
 df_phcolon <- df_gc %>% 
 mutate(
@@ -769,7 +767,6 @@ unique(df_c$cuerpo_lugar1)
 unique(df_c$cuerpo_lugar2)
 
 ### 3.5. Ataque-----------------------------------------------------------------
-
 # separar valores  
 df_semicolon2 <- df_c %>% 
   mutate(
@@ -779,7 +776,7 @@ df_semicolon2 <- df_c %>%
     semicolon2 = str_count(ataque_armado_clean, ";")) %>% 
   select(semicolon2) 
 
-max(df_semicolon2$semicolon2, na.rm = T) # El máximo es 2
+max(df_semicolon2$semicolon2, na.rm = T) # El máximo es 3
 
 df_ata <- df_c %>% 
   mutate(ataque_armado_clean = str_replace_all(ataque_armado_clean, ":", ";")) %>% 
@@ -814,7 +811,8 @@ va_enfrentamiento <- c("enfrentamiento")
 
 va_incendio <- c("bomba molotov", "incendio de casa", "incendio de auto", 
                 "incendio de local", "incendio de vehículo", "arma explosiva",
-                "incendio", "incendio provocado", "Narcobloqueos", "bomba")
+                "incendio", "incendio provocado", "Narcobloqueos", "bomba",
+                "incendiado", " incendiado")
 
 va_fseguridad <- c("desalojo", "persecución")
 
@@ -862,6 +860,7 @@ df_ata <- df_ata %>%
                      ataque3 %in% va_rina               ~ "riña",
                      ataque3 %in% va_otro               ~ "otro",
                      ataque3 ==   ataque3               ~ ataque3))
+
 
 unique(df_ata$ataque1)
 unique(df_ata$ataque2)
