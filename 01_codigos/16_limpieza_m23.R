@@ -6,7 +6,7 @@
 # Correo:                     alejandro.pocoroba@cide.edu
 #                             erick.morales@cide.edu                                
 # Fecha de creación:          01 de mayo de 2023
-# Última actualización:       02 de mayo de 2023
+# Última actualización:       05 de mayo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión enero-marzo 2023
@@ -32,7 +32,7 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 # 1. Cargar datos --------------------------------------------------------------
 
 # bases de enero, febrer y marzo 
-m1 <- read_xlsx(paste_inp("m_ene_mar_23_s.xlsx"))
+m1 <- read_xlsx(paste_inp("m_ene_mar_23_su.xlsx"))
 
 # 2. Procesamiento -------------------------------------------------------------
 
@@ -72,6 +72,7 @@ df_1 <- df_ %>%
          "grupo_criminal"         = "x3_3_grupo_criminal",
          "Alianza"                = "x3_3_1_alianza_grupo",
          "Rival"                  = "x3_3_2_rival_grupo",
+         "actividad_grupo"        = "x3_1_actividad",
          "Narcomensaje"           = "x3_2_1_narcomensaje",
          "contenido_narcomensaje" = "x3_2_2_contenido_narcomensaje",
          "homic_total"            = "x2_2_1_homicidios_total",
@@ -117,8 +118,9 @@ df_1 <- df_1 %>%
 
 ### 3.1. Grupos criminales------------------------------------------------------
 #base inicia df_1 y termina con df_gc
+
 # ---- Separar columnas 
-df_gc <- df_1 %>% 
+df_semicolon <- df_1 %>% 
   mutate(
     # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
     grupo_criminal = str_replace_all(grupo_criminal, ":", ";"), 
@@ -126,7 +128,7 @@ df_gc <- df_1 %>%
     grupo_criminal = str_count(grupo_criminal, ";")) %>% 
   select(grupo_criminal) 
 
-max(df_gc$grupo_criminal, na.rm = T) # El máximo es 1 grupos criminales 
+max(df_semicolon$grupo_criminal, na.rm = T) # El máximo es 1 grupos criminales 
 
 # Separar los nombres de los grupos criminales en columnas independientes 
 df_gc <- df_1 %>% 
@@ -216,10 +218,10 @@ limpiar_grupos <- function(x){
     x  == " Los Caballeros Templarios" ~ "Caballeros Templarios",
     x  == "GDC" ~ "Grupo del Chaparrito",
     x  == "la mera verga" ~ "La Mera Verga",
-    x  == "Los Ciclones" ~ "Ciclones/Escorpiones",
-    x  == "Grupo Escorpión" ~ "Ciclones/Escorpiones",
-    x  == "Escorpiones" ~ "Ciclones/Escorpiones",
-    x  == " Los Ciclones" ~ "Ciclones/Escorpiones",
+    x  == "Los Ciclones" ~ "Los Ciclones",
+    x  == "Grupo Escorpión" ~ "Grupo Escorpión",
+    x  == "Escorpiones" ~ "Grupo Escorpión",
+    x  == " Los Ciclones" ~ "Los Ciclones",
     x  == "grupo del 13" ~ "Grupo del 13",
     x  == "banda delictiva de “El Malverde”" ~ "Banda de El Malverde",
     x  == "Nueva alianza" ~ "Nueva Alianza",
@@ -248,10 +250,256 @@ unique(df_gc$rival2)
 ### 3.2. Persona (homicidios + heridxs)-----------------------------------------
 #base inicia df_gc y termina con df_p
 
-### 3.3. Cuerpos----------------------------------------------------------------
-#base inicia df_p y termina con df_c
+# homicidios 
+df_phcolon <- df_gc %>% 
+mutate(
+  # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
+  homic_clasif1 = str_replace_all(homic_clasif1, ":", ";"), 
+  # Contar número de puntos y comas (;)
+  homic_clasif1 = str_count(homic_clasif1, ";")) %>% 
+  select(homic_clasif1)
 
-df_p <- df_gc #por el momento
+max(df_phcolon$homic_clasif1, na.rm = T) # El máximo es 2
+
+df_p <- df_gc %>% 
+  mutate(homic_clasif1 = str_replace_all(homic_clasif1, ":", ";")) %>% 
+  separate(homic_clasif1, sep = ";", c("homic_clasif1", 
+                                       "homic_clasif2"))
+
+unique(df_p$homic_clasif1)
+unique(df_p$homic_clasif2)
+
+# herdxs 
+df_phecolon <- df_gc %>% 
+mutate(
+  # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
+  heridos_clasif1 = str_replace_all(heridos_clasif1, ":", ";"), 
+  # Contar número de puntos y comas (;)
+  heridos_clasif1 = str_count(heridos_clasif1, ";")) %>% 
+  select(heridos_clasif1)
+
+max(df_phecolon$heridos_clasif1, na.rm = T) # El máximo es 1
+
+df_p <- df_p %>% 
+  mutate(heridos_clasif1 = str_replace_all(heridos_clasif1, ":", ";")) %>% 
+  separate(heridos_clasif1, sep = ";", c("herido_clasif1", 
+                                         "herido_clasif2"))
+
+unique(df_p$herido_clasif1)
+unique(df_p$herido_clasif2)
+
+# clasificación - vector 
+
+v_adulto_mayor <- c("adultos mayores", "tercera edad")
+
+v_campesino <- c("campesino", "cultivador de aguacate")
+
+v_ex_fuerzas_de_seguridad <- c("ex policía", "exmilitar", "Exagente de FGE",
+                               "ex militar", "expolicía")
+
+v_ex_funcionario_público <- c("exdirigente de partido","Exfuncionario público", 
+                              "ex-síndico", "ex diputado", "Exdirigente del PRD",
+                              "ex-alcalde", "ex alcalde y colaboradores",
+                              "ex funcionario")
+
+v_fseguridad <- c(" Policía Penitenciaria", "comandante de policía municipal", 
+                  "elemento de la Guardia Nacional", "Guardia Nacional", "marino", 
+                  "Militar", "militar", "policia", "policía auxiliar", 
+                  "policía bancaria", "policía de tránsito", "Policía estatal", 
+                  "polícia estatal", "Policía Estatal Preventiva (PEP)", 
+                  "policía estatal", "policía fiscalia", "policía investigación", 
+                  "policía ministerial", "policía municipal", "polícia transito", 
+                  "policía y bombero", "un municipal", "dos estatales", " un militar",
+                  "Policía Penitenciaria.", "funcionario público", 
+                  "elemento de la Guardia Nacional ", "un policía", " un ministerial",
+                  " dos estatales", "agente AIC-UECS",
+                  "Comandante de la Policía de investigación", "policía comunitario",
+                  "dos policias", "polícia", "Policía Metropolitana",
+                  "agente de la FGE", "autoridad policial",
+                  "guardia nacional", "dos policías", "agente", "semar", 
+                  "agentes de tránsito", " exagente de la FGE",
+                  " Guardia Nacional")
+
+v_fpublico <- c("comisariado", "comisariado ejidal", 
+                "comisario suplente de la comunidad", "delegado", 
+                "empleado municipal", "Fiscalía Estatal", 
+                "funcionario público", 
+                "representante de Bienes Comunales de comunidad indígena", 
+                "servidor público municipal", "síndico", 
+                " delegado de la comunidad", "sindicalistas", "cfe", "comisario",
+                "líder de unión nacional de transportistas del cambio", "líder cañero")
+
+v_menor <- c("menor de edad", "un menor de edad", "2 menor de edad", 
+             "1 menor de edad", " 2 menores de edad", " un menor de edad",
+             " 2 menor de edad", "menor de edad", " 1 menor de edad",
+             "una menor de edad", "dos menores")
+
+v_moto <- c("motociclista", "motociclistas", "mototaxista")
+
+v_pepenador <- c("pepenador")
+
+v_criminal <- c("agresor", "cuatro sicarios", 
+                "exintegrante de grupo criminal", "Gatilleros", "grupo criminal", 
+                "huachicoleros", "ladrón", 
+                "líder narcomenudista Abraham de Jesús H. C., alias El Croquis", 
+                "Narcomenudista", "presunto agresor", "presunto criminal", 
+                "Salvador Navarro Peñaloza El Zarco", "alias El Yofos",
+                "Sicario", " 6 grupo criminal", " sicario", " dos delincuentes",
+                " asaltante", " grupo del crimen organizado", "ocho sicarios",
+                "delincuente", "asaltante", "narcodistribuidor", "presunto ladrón",
+                "presunto asaltante", "miembros de célula delictiva", 
+                "presunto delincuente", "presunto narcomenudista", "pandilla")
+
+v_general <- c("desaparecidos", "deparecido", "Ex presidiario", "familia", 
+               "hermano de edil", "hijo de dueño de negocio", 
+               "Integrantes de Ronda comunitaria", "menonitas", "MULT", 
+               "padre e hijo", "pareja", "pasajero", "Sacerdote", 
+               "Sin especificar", "sin especificar", " desaparecido", " desparecido",
+               " pasajero", " desaparecida", "desaparecido", "estudiante", "Miembro de los Loreto",
+               "Hermano de expresidente municipal", "cliente de negocio", "ciclista",
+               "exconvicto", "Cholo", "civil", "talamontes", " dos hermanos", "pasajero de taxi",
+               "civíl", " civil", " acompañante")
+
+v_lgbt <- c("transexual", "población lgbt")
+
+v_ppl <- c("persona privada de la libertad", "presidiario", 
+           "privado de la libertad", "recluso", " ppl", " secuestrado",
+           "interno centro de rehabilitación", "detenido", "secuestrados",
+           "secuestrado", "personas privadas de la libertad")
+
+v_profesionista <- c("abogado", "abogado", "arquitecto", "doctor", 
+                     "empresario", "enfermera", "gerente", 
+                     "hotelero", "Profesor", "profesora", "periodista",
+                     "Hotelero", "maestro", "profesor", "maestra",
+                     "profesional de la salud")
+
+v_sprivada <- c("custodio centro de rehabilitación", "custodios", 
+                "guardaespaldas", "guardia de seguridad", "velador",
+                "custodio", "escolta de autodefensa", " escolta")
+
+v_calle <- c("condición de calle", "indigente", "persona en situación de calle")
+
+v_taxi <- c("chofer de aplicación", "conductor de plataforma", 
+            "taxista", "taxista", "trailero", "transportista", " chofer",
+            " taxista", "uber", "chofer", "líder de taxistas",
+            "taxi/chofer", "un taxista")
+
+v_trabajador <- c("albañil", "ama de casa", "artesano", 
+                  "ayudante de hojalatería", "bolillero", "Carnicero", 
+                  "checador", "contratista", "despachadores de gasolina", 
+                  "dueño de autolavado", "dueño de bar", "dueño de local", 
+                  "empleado de tienda", "ganadero", "jardinero", "jornalero", 
+                  "lavacoches", "líder de transportistas y de comerciantes", 
+                  "limpiaparabrisas", "mecánico", "mesero", "obrero", "panadero", 
+                  "pescadores", "Propietario de negocio", "talachero", 
+                  "tamalero", "taquero", "trabajador", "empleado de hotel",
+                  "vendedora", "despachador", "barbero", "empleado", "comerciante",
+                  "repartidor", "vendedora ambulante", "beisbolista", 
+                  "scort", "capataz", "músico", "chatarrero", "Integrante grupo de Danza",
+                  "repartidor de agua", "empleado de autolavado", "dueño", 
+                  "carpintero", "Dueño de negocio", "vendedor de pan",
+                  " empleado de bar", " empleada de comercio")
+
+v_migrante <- c("migrante")
+
+# Limpiar nombres
+df_p <- df_p %>%
+mutate(homic_clasif1 = 
+   case_when(homic_clasif1 %in% v_adulto_mayor               ~ "adulto mayor",
+             homic_clasif1 %in% v_campesino                  ~ "campesino",
+             homic_clasif1 %in% v_ex_fuerzas_de_seguridad    ~ "ex fuerzas de seguridad",
+             homic_clasif1 %in% v_ex_funcionario_público     ~ "ex funcionario público",
+             homic_clasif1 %in% v_fseguridad                 ~ "fuerzas de seguridad",
+             homic_clasif1 %in% v_fpublico                   ~ "funcionario público",
+             homic_clasif1 %in% v_menor                      ~ "menor de edad",
+             homic_clasif1 %in% v_moto                       ~ "motociclista",
+             homic_clasif1 %in% v_pepenador                  ~ "pepenador",
+             homic_clasif1 %in% v_criminal                   ~ "población criminal",
+             homic_clasif1 %in% v_general                    ~ "población en general",
+             homic_clasif1 %in% v_lgbt                       ~ "población lgbt",
+             homic_clasif1 %in% v_ppl                        ~ "población privada de la libertad",
+             homic_clasif1 %in% v_profesionista              ~ "profesionista",
+             homic_clasif1 %in% v_sprivada                   ~ "seguridad privada",
+             homic_clasif1 %in% v_calle                      ~ "situación de calle",
+             homic_clasif1 %in% v_ppl                        ~ "población privada de la libertad",
+             homic_clasif1 %in% v_taxi                       ~ "taxi/chofer",
+             homic_clasif1 %in% v_trabajador                 ~ "trabajador",
+             homic_clasif1 %in% v_migrante                   ~ "migrante",
+             homic_clasif1 ==   homic_clasif1                ~ homic_clasif1),
+  homic_clasif2 =
+    case_when(homic_clasif2 %in% v_adulto_mayor             ~ "adulto mayor",
+              homic_clasif2 %in% v_campesino                ~ "campesino",
+              homic_clasif2 %in% v_ex_fuerzas_de_seguridad  ~ "ex fuerzas de seguridad",
+              homic_clasif2 %in% v_ex_funcionario_público   ~ "ex funcionario público",
+              homic_clasif2 %in% v_fseguridad               ~ "fuerzas de seguridad",
+              homic_clasif2 %in% v_fpublico                 ~ "funcionario público",
+              homic_clasif2 %in% v_menor                    ~ "menor de edad",
+              homic_clasif2 %in% v_moto                     ~ "motociclista",
+              homic_clasif2 %in% v_pepenador                ~ "pepenador",
+              homic_clasif2 %in% v_criminal                 ~ "población criminal",
+              homic_clasif2 %in% v_general                  ~ "población en general",
+              homic_clasif2 %in% v_lgbt                     ~ "población lgbt",
+              homic_clasif2 %in% v_ppl                      ~ "población privada de la libertad",
+              homic_clasif2 %in% v_profesionista            ~ "profesionista",
+              homic_clasif2 %in% v_sprivada                 ~ "seguridad privada",
+              homic_clasif2 %in% v_calle                    ~ "situación de calle",
+              homic_clasif2 %in% v_ppl                      ~ "población privada de la libertad",
+              homic_clasif2 %in% v_taxi                     ~ "taxi/chofer",
+              homic_clasif2 %in% v_trabajador               ~ "trabajador",
+              homic_clasif2 %in% v_migrante                 ~ "migrante",
+              homic_clasif2 ==   homic_clasif2              ~ homic_clasif2),
+ herido_clasif1 =
+    case_when(herido_clasif1 %in% v_adulto_mayor             ~ "adulto mayor",
+              herido_clasif1 %in% v_campesino                ~ "campesino",
+              herido_clasif1 %in% v_ex_fuerzas_de_seguridad  ~ "ex fuerzas de seguridad",
+              herido_clasif1 %in% v_ex_funcionario_público   ~ "ex funcionario público",
+              herido_clasif1 %in% v_fseguridad               ~ "fuerzas de seguridad",
+              herido_clasif1 %in% v_fpublico                 ~ "funcionario público",
+              herido_clasif1 %in% v_menor                    ~ "menor de edad",
+              herido_clasif1 %in% v_moto                     ~ "motociclista",
+              herido_clasif1 %in% v_pepenador                ~ "pepenador",
+              herido_clasif1 %in% v_criminal                 ~ "población criminal",
+              herido_clasif1 %in% v_general                  ~ "población en general",
+              herido_clasif1 %in% v_lgbt                     ~ "población lgbt",
+              herido_clasif1 %in% v_ppl                      ~ "población privada de la libertad",
+              herido_clasif1 %in% v_profesionista            ~ "profesionista",
+              herido_clasif1 %in% v_sprivada                 ~ "seguridad privada",
+              herido_clasif1 %in% v_calle                    ~ "situación de calle",
+              herido_clasif1 %in% v_ppl                      ~ "población privada de la libertad",
+              herido_clasif1 %in% v_taxi                     ~ "taxi/chofer",
+              herido_clasif1 %in% v_trabajador               ~ "trabajador",
+              herido_clasif1 %in% v_migrante                 ~ "migrante",
+              herido_clasif1 ==   herido_clasif1             ~ herido_clasif1),
+  herido_clasif2 =
+    case_when(herido_clasif2 %in% v_adulto_mayor             ~ "adulto mayor",
+              herido_clasif2 %in% v_campesino                ~ "campesino",
+              herido_clasif2 %in% v_ex_fuerzas_de_seguridad  ~ "ex fuerzas de seguridad",
+              herido_clasif2 %in% v_ex_funcionario_público   ~ "ex funcionario público",
+              herido_clasif2 %in% v_fseguridad               ~ "fuerzas de seguridad",
+              herido_clasif2 %in% v_fpublico                 ~ "funcionario público",
+              herido_clasif2 %in% v_menor                    ~ "menor de edad",
+              herido_clasif2 %in% v_moto                     ~ "motociclista",
+              herido_clasif2 %in% v_pepenador                ~ "pepenador",
+              herido_clasif2 %in% v_criminal                 ~ "población criminal",
+              herido_clasif2 %in% v_general                  ~ "población en general",
+              herido_clasif2 %in% v_lgbt                     ~ "población lgbt",
+              herido_clasif2 %in% v_ppl                      ~ "población privada de la libertad",
+              herido_clasif2 %in% v_profesionista            ~ "profesionista",
+              herido_clasif2 %in% v_sprivada                 ~ "seguridad privada",
+              herido_clasif2 %in% v_calle                    ~ "situación de calle",
+              herido_clasif2 %in% v_ppl                      ~ "población privada de la libertad",
+              herido_clasif2 %in% v_taxi                     ~ "taxi/chofer",
+              herido_clasif2 %in% v_trabajador               ~ "trabajador",
+              herido_clasif2 %in% v_migrante                 ~ "migrante",
+              herido_clasif2 ==   herido_clasif2             ~ herido_clasif2))
+
+unique(df_p$homic_clasif1)
+unique(df_p$homic_clasif2)
+
+unique(df_p$herido_clasif1)
+unique(df_p$herido_clasif2)
+
+### 3.3. Cuerpos----------------------------------------------------------------
 
 # separar valores con más opciones
 df_semicolon0 <- df_p %>% 
@@ -344,10 +592,10 @@ df_semicolon1 <- df_c %>%
     # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
     cuerpos_lugar1 = str_replace_all(cuerpos_lugar1, ":", ";"), 
     # Contar número de puntos y comas (;)
-    df_semicolon1 = str_count(cuerpos_lugar1, ";")) %>% 
-  select(df_semicolon1) 
+    semicolon1 = str_count(cuerpos_lugar1, ";")) %>% 
+  select(semicolon1) 
 
-max(df_semicolon1$df_semicolon1, na.rm = T) # El máximo es 1
+max(df_semicolon1$semicolon1, na.rm = T) # El máximo es 1
 
 df_c <- df_c %>% 
   mutate(cuerpos_lugar1 = str_replace_all(cuerpos_lugar1, ":", ";")) %>% 
@@ -520,18 +768,109 @@ df_c <- df_c %>%
 unique(df_c$cuerpo_lugar1)
 unique(df_c$cuerpo_lugar2)
 
-
 ### 3.5. Ataque-----------------------------------------------------------------
-#base inicia df_c y termina con df_ata
 
+# separar valores  
+df_semicolon2 <- df_c %>% 
+  mutate(
+    # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
+    ataque_armado_clean = str_replace_all(ataque_armado_clean, ":", ";"), 
+    # Contar número de puntos y comas (;)
+    semicolon2 = str_count(ataque_armado_clean, ";")) %>% 
+  select(semicolon2) 
+
+max(df_semicolon2$semicolon2, na.rm = T) # El máximo es 2
+
+df_ata <- df_c %>% 
+  mutate(ataque_armado_clean = str_replace_all(ataque_armado_clean, ":", ";")) %>% 
+  separate(ataque_armado_clean, sep = ";", c("ataque1", 
+                                             "ataque2",
+                                             "ataque3"))
+
+unique(df_ata$ataque1)
+unique(df_ata$ataque2)
+unique(df_ata$ataque3)
+
+# clasificación - vector 
+
+va_blanca <- c("arma blanca","asalto con arma blanca", "asfixia", 
+              "degollación", "lapidación", "estrangulación", "Poncha llantas",
+              "Ponchallantas", "martillazos", " arma blanca", " arma blanca")
+
+va_fuego <- c("arma de fuego", "disparos a casa habitación", "disparos al aire", "detonaciones",
+             "disparos",  "agresión", "agresión a comercio", "agresión a vehiculo",
+             "agresión a vivienda", "agresión a vivienda; agresión a vehículo", 
+             "arma de fuego; agresión a policías", "arma de fuego; secuetro",
+             "asalto con arma de fuego", "Bala perdida", "disparos (en general)", 
+             "disparos a automóvil", "disparos a cámaras de vigilancia", 
+             "disparos a comercio", "fachada baleada", "presunto feminicidio",
+             "billar", "secuestro armado", "levantón armado", 
+             "agresión a vehículo", " arma de fuego", " agresión a policías",
+             " agresión a vehículo", " agresión a policías")
+
+va_balacera <- c("balacera", "tiroteo")
+
+va_enfrentamiento <- c("enfrentamiento")
+
+va_incendio <- c("bomba molotov", "incendio de casa", "incendio de auto", 
+                "incendio de local", "incendio de vehículo", "arma explosiva",
+                "incendio", "incendio provocado", "Narcobloqueos", "bomba")
+
+va_fseguridad <- c("desalojo", "persecución")
+
+va_persecucion <- c("persecución")
+
+va_rina <- c("golpes", "riña", "golpes/riña", "riña; arma blanca", 
+            "riña; arma de fuego", "riña; arma de fuego; agresión a policías",
+            "linchamiento")
+
+va_otro <- c("robo", "asalto", "narcotizado", "robo de autos", 
+             "robo de vehículo", " atropellamiento intencional")
+
+# Limpiar nombres 
+df_ata <- df_ata %>% 
+  mutate(ataque1 = 
+           case_when(ataque1 %in% va_blanca             ~ "agresión con arma blanca",
+                     ataque1 %in% va_fuego              ~ "agresión con arma de fuego",
+                     ataque1 %in% va_balacera           ~ "balacera",
+                     ataque1 %in% va_enfrentamiento     ~ "enfrentamiento",
+                     ataque1 %in% va_incendio           ~ "incendio/explosión",
+                     ataque1 %in% va_fseguridad         ~ "intervención fuerzas de seguridad",
+                     ataque1 %in% va_persecucion        ~ "persecución",
+                     ataque1 %in% va_rina               ~ "riña",
+                     ataque1 %in% va_otro               ~ "otro",
+                     ataque1 ==   ataque1               ~ ataque1), 
+         ataque2 = 
+           case_when(ataque2 %in% va_blanca             ~ "agresión con arma blanca",
+                     ataque2 %in% va_fuego              ~ "agresión con arma de fuego",
+                     ataque2 %in% va_balacera           ~ "balacera",
+                     ataque2 %in% va_enfrentamiento     ~ "enfrentamiento",
+                     ataque2 %in% va_incendio           ~ "incendio/explosión",
+                     ataque2 %in% va_fseguridad         ~ "intervención fuerzas de seguridad",
+                     ataque2 %in% va_persecucion        ~ "persecución",
+                     ataque2 %in% va_rina               ~ "riña",
+                     ataque2 %in% va_otro               ~ "otro",
+                     ataque2 ==   ataque2               ~ ataque2), 
+         ataque3 = 
+           case_when(ataque3 %in% va_blanca             ~ "agresión con arma blanca",
+                     ataque3 %in% va_fuego              ~ "agresión con arma de fuego",
+                     ataque3 %in% va_balacera           ~ "balacera",
+                     ataque3 %in% va_enfrentamiento     ~ "enfrentamiento",
+                     ataque3 %in% va_incendio           ~ "incendio/explosión",
+                     ataque3 %in% va_fseguridad         ~ "intervención fuerzas de seguridad",
+                     ataque3 %in% va_persecucion        ~ "persecución",
+                     ataque3 %in% va_rina               ~ "riña",
+                     ataque3 %in% va_otro               ~ "otro",
+                     ataque3 ==   ataque3               ~ ataque3))
+
+unique(df_ata$ataque1)
+unique(df_ata$ataque2)
+unique(df_ata$ataque3)
 
 ### 3.6. Lugar de ataque--------------------------------------------------------
-#base inicia df_ata y termina con df_lu
-
-df_lu <- df_c # por el momento
 
 # separar valores con más opciones
-df_semicolon2 <- df_lu %>% 
+df_semicolon3 <- df_ata %>% 
   mutate(
     # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
     lugar_ataque_clean = str_replace_all(lugar_ataque_clean, ":", ";"), 
@@ -539,9 +878,9 @@ df_semicolon2 <- df_lu %>%
     lugar_ataque_clean = str_count(lugar_ataque_clean, ";")) %>% 
   select(lugar_ataque_clean) 
 
-max(df_semicolon2$lugar_ataque_clean, na.rm = T) # El máximo es 1
+max(df_semicolon3$lugar_ataque_clean, na.rm = T) # El máximo es 1
 
-df_lu <- df_lu %>% 
+df_lu <- df_ata %>% 
   mutate(lugar_ataque_clean = str_replace_all(lugar_ataque_clean, ":", ";")) %>% 
   separate(lugar_ataque_clean, sep = ";", c("lugar_ataque1", 
                                             "lugar_ataque2"))
@@ -682,17 +1021,154 @@ df_lu <- df_lu %>%
 unique(df_lu$lugar_ataque1)
 unique(df_lu$lugar_ataque2)
 
+# 3.7 Actividad-----------------------------------------------------------------
+# separar valores con más opciones
+df_actsemicolon <- df_lu %>% 
+  mutate(
+    # Reemplazar casos donde haya dos puntos (:) por punto y coma (;)
+    actividad_grupo = str_replace_all(actividad_grupo, ":", ";"), 
+    # Contar número de puntos y comas (;)
+    actividad_grupo = str_count(actividad_grupo, ";")) %>% 
+  select(actividad_grupo) 
 
-# 4. Base limpía----------------------------------------------------------------
-# termina con df_lu
+max(df_actsemicolon$actividad_grupo, na.rm = T) # El máximo es 1
 
-openxlsx::write.xlsx(df_lu, 
+df_act <- df_lu %>% 
+  mutate(actividad_grupo = str_replace_all(actividad_grupo, ":", ";")) %>% 
+  separate(actividad_grupo, sep = ";", c("actividad_grupo1", 
+                                         "actividad_grupo2"))
+
+unique(df_act$actividad_grupo1)
+unique(df_act$actividad_grupo2)
+
+
+# clasificación - vector 
+
+vact_agresion <- c("Agresiones", "Desalojo", "disparos")
+
+vact_extorison <- c("cobro de piso", "halcón",
+                    "extorsión", " cobro de piso")
+
+vact_enfrentamiento <- c("Enfrentamiento")
+
+vact_noviolenta <- c("narcofiesta", "Presencia no violenta", 
+                     "Entrega de juguetes", "préstamos",
+                     "entrega de secuestradores")
+
+vact_amenaza <- c("toque de queda", "amenaza")
+
+vact_secuestro <- c("secuestro","Tráfico de personas")
+
+vact_psinespecificar <- c("Presencia (sin especificar)", "presencia",
+                          "presencia (varios)")
+
+vact_labycamp <- c("laboratorio","campamento", "reclutamiento")
+
+vact_fseguridad <- c("desmantelamiento cédula criminal", "detención",
+                     "Decomiso")
+
+vact_coru_rob <- c("lavado de dinero", "robo", "contubernio")
+
+vact_sustancias <- c("Sustancias ilícitas", " tráfico de sustancias",
+                     "  tráfico de sustancias")
+
+vact_armas <- c("tráfico de armas")  
+
+# Limpiar nombres 
+df_act <- df_act %>% 
+  mutate(actividad_grupo1 = 
+           case_when(actividad_grupo1 %in% vact_agresion        ~ "agresión",
+                     actividad_grupo1 %in% vact_extorison       ~ "vigilancia/extorsión",
+                     actividad_grupo1 %in% vact_enfrentamiento  ~ "enfrentamiento",
+                     actividad_grupo1 %in% vact_noviolenta      ~ "presencia no violenta",
+                     actividad_grupo1 %in% vact_amenaza         ~ "amenazas",
+                     actividad_grupo1 %in% vact_secuestro       ~ "privación de la libertad",
+                     actividad_grupo1 %in% vact_psinespecificar ~ "presencia sin especificar",
+                     actividad_grupo1 %in% vact_labycamp        ~ "laboratorios/campamento/reclutamiento",
+                     actividad_grupo1 %in% vact_fseguridad      ~ "intervenciones gubernamentales",
+                     actividad_grupo1 %in% vact_coru_rob        ~ "corrupción/robo",
+                     actividad_grupo1 %in% vact_sustancias      ~ "sustancias ilegales",
+                     actividad_grupo1 %in% vact_armas           ~ "tráfico de armas",
+                     actividad_grupo1 ==   actividad_grupo1     ~ actividad_grupo1), 
+         actividad_grupo2 = 
+           case_when(actividad_grupo2 %in% vact_agresion        ~ "agresión",
+                     actividad_grupo2 %in% vact_extorison       ~ "vigilancia/extorsión",
+                     actividad_grupo2 %in% vact_enfrentamiento  ~ "enfrentamiento",
+                     actividad_grupo2 %in% vact_noviolenta      ~ "presencia no violenta",
+                     actividad_grupo2 %in% vact_amenaza         ~ "amenazas",
+                     actividad_grupo2 %in% vact_secuestro       ~ "privación de la libertad",
+                     actividad_grupo2 %in% vact_psinespecificar ~ "presencia sin especificar",
+                     actividad_grupo2 %in% vact_labycamp        ~ "laboratorios/campamento/reclutamiento",
+                     actividad_grupo2 %in% vact_fseguridad      ~ "intervenciones gubernamentales",
+                     actividad_grupo2 %in% vact_coru_rob        ~ "corrupción/robo",
+                     actividad_grupo2 %in% vact_sustancias      ~ "sustancias ilegales",
+                     actividad_grupo2 %in% vact_armas           ~ "tráfico de armas",
+                     actividad_grupo2 ==   actividad_grupo2     ~ actividad_grupo2)) 
+
+unique(df_act$actividad_grupo1)
+unique(df_act$actividad_grupo2)
+
+# 4. ID y orden 
+df_act <- df_act %>% 
+ mutate(id = 1:length(df_act$Mes))
+
+m_2023 <- df_act %>%
+  select("id"                     = "id",
+         "fecha_de_publicacion"   = "fecha_de_publicacion",
+         "mes"                    = "Mes", 
+         "dia"                    = "Dia",
+         "anio"                   = "Anio", 
+         "fecha_hechos"           = "fecha_hechos",
+         "enlace"                 = "Enlace",
+         "titulo_de_la_nota"      = "titulo_de_la_nota",
+         "nombre_de_la_fuente"    = "nombre_de_la_fuente",
+         "enlace_otras_notas"     = "enlace_otras_notas",
+         "estado"                 = "Estado",
+         "municipio"              = "Municipio",
+         "CVEGEO_ent"             = "CVEGEO_ent",
+         "CVEGEO_mun"             = "CVEGEO_mun",
+         "CVEGEO"                 = "CVEGEO",
+         "lugar"                  = "Lugar",
+         "grupo1"                 = "grupo1",
+         "grupo2"                 = "grupo2",
+         "alianza1"               = "alianza1",
+         "alianza2"               = "alianza2",
+         "alianza3"               = "alianza3",
+         "alianza4"               = "alianza4",
+         "alianza5"               = "alianza5",
+         "rival1"                 = "rival1", 
+         "rival2"                 = "rival2",
+         "actividad_grupo1"       = "actividad_grupo1",
+         "actividad_grupo2"       = "actividad_grupo2",
+         "narcomensaje"           = "Narcomensaje",
+         "contenido_narcomensaje" = "contenido_narcomensaje",
+         "homic_total"            = "homic_total",
+         "homic_hombre"           = "homic_hombre",
+         "homic_mujer"            = "homic_mujer",
+         "homic_clasif1"          = "homic_clasif1",
+         "homic_clasif2"          = "homic_clasif2",
+         "cuerpos_localizados"    = "cuerpos_localizados",
+         "cuerpo_modo1"           = "cuerpo_modo1",
+         "cuerpo_modo2"           = "cuerpo_modo2",
+         "cuerpo_lugar1"          = "cuerpo_lugar1",
+         "cuerpo_lugar2"          = "cuerpo_lugar2",
+         "heridos_total"          = "heridos_total",
+         "heridos_hombre"         = "heridos_hombre",
+         "heridos_mujeres"        = "heridos_mujeres",
+         "herido_clasif1"         = "herido_clasif1",
+         "herido_clasif2"         = "herido_clasif2",
+         "ataque1"                = "ataque1",
+         "ataque2"                = "ataque2",
+         "ataque3"                = "ataque3",
+         "lugar_ataque1"          = "lugar_ataque1",
+         "lugar_ataque2"          = "lugar_ataque2",
+         "politica_de_seguridad"  = "politica_de_seguridad")
+
+# 5. Base limpía----------------------------------------------------------------
+openxlsx::write.xlsx(m_2023, 
                      file = paste_out("m_ene_mar_23_lim.xlsx"))
-
-
-beepr::beep(9)
 # Fin--------------------------------------------------------------------------- 
-
+beepr::beep(9)
 
 
 
