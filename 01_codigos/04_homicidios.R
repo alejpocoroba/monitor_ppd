@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          24 de febrero   de 2023
-# Última actualización:       21 de marzo   de 2023
+# Última actualización:       05 de mayo      de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor-PPD (2022)
@@ -28,15 +28,10 @@ paste_out <- function(x){paste0("03_datos_limpios/", x)}
 paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
 # 1. Cargar datos---------------------------------------------------------------
-df_hom_ene_feb <- read_xlsx(paste_inp("Monitor_PPD_01_02.23.xlsx"))
-df_hom_marz <- read_xlsx(paste_inp("Monitor_PPD_03.23.xlsx"))
+df_hom <- read_xlsx(paste_inp("m_ene_mar_23_su.xlsx"))
 
 # 2. Limpieza de los datos------------------------------------------------------
 ## Datos de homicidios en octubre-----------------------------------------------
-
-# Se pegan enero-febrero y marzo 2023
-df_hom <- df_hom_ene_feb %>% 
-  bind_rows(df_hom_marz) 
 
 # Limpieza de los nombres & selección de variables
 df_hom2 <- df_hom %>% 
@@ -57,7 +52,7 @@ homicidios_ <- df_hom2 %>%
   summarise(total_homicidios = sum(homicido, na.rm = T))
 
 # Verificación
-sum(homicidios_$total_homicidios) # Homicidios: 3787
+sum(homicidios_$total_homicidios) # Homicidios: 4,986
 
 # Guardar base
 openxlsx::write.xlsx(homicidios_, file = paste_out("homicidios_.xlsx"), overwrite = T)
