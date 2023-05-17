@@ -2,11 +2,11 @@
 # Proyecto:                   Monitor PPD 2023
 # Objetivo:                   Limpieza enero-marzo 2023
 #
-# Encargado:                  Alejandro Pocoroba y Erick Isaac Morales Sánchez
+# Encargado:                  Alejandro Pocoroba Erick Isaac Morales Sánchez
 # Correo:                     alejandro.pocoroba@cide.edu
 #                             erick.morales@cide.edu                                
 # Fecha de creación:          01 de mayo de 2023
-# Última actualización:       05 de mayo de 2023
+# Última actualización:       17 de mayo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión enero-marzo 2023
@@ -91,7 +91,28 @@ df_1 <- df_ %>%
          "politica_de_seguridad"  = "politica_seguridad")
  
 # 3. Limpiar de las variables --------------------------------------------------
-### 3.1 Cambiar FALSE/TRUE por 0 y 1 en Narcomensajes, Cuerpos y Poli de Seg
+
+### 3.1 Fuente------------------------------------------------------------------
+# Limpiar nombres de la fuente
+#Vectores para los acentos
+origen <- c("?", "?", "?", "?", "?", "?", "?", "?", "?", "?")
+
+# Vector de caracteres de destino
+destino <- c("a", "e", "i", "o", "u", "A", "E", "I", "O", "U")
+
+# Aplicar la funci?n chartr() para eliminar acentos
+df_1$nombre_de_la_fuente <- chartr(paste(origen, collapse = ""), 
+                                   paste(destino, collapse = ""), 
+                                   df_1$nombre_de_la_fuente)
+# Quitar articulos que se repiten
+df_1$nombre_de_la_fuente <- gsub("^el\\s+", "", df_1$nombre_de_la_fuente, 
+                                 ignore.case = TRUE)
+# Reemplazar mayusculas
+df_1[] <- lapply(df_1, function(x) if (is.character(x)) tolower(x) else x)
+
+
+### 3.2 Narcomensajes, Cuerpos y Seg--------------------------------------------
+# Cambiar FALSE/TRUE por 0 y 1
 
 # Narcomensaje
 df_1$Narcomensaje <- as.character(df_1$Narcomensaje)
@@ -116,7 +137,7 @@ df_1 <- df_1 %>%
                      politica_de_seguridad == "TRUE"  ~ "1",
                      politica_de_seguridad == politica_de_seguridad ~ politica_de_seguridad))
 
-### 3.1. Grupos criminales------------------------------------------------------
+### 3.3. Grupos criminales------------------------------------------------------
 #base inicia df_1 y termina con df_gc
 
 # ---- Separar columnas 
@@ -247,7 +268,7 @@ unique(df_gc$alianza5)
 unique(df_gc$rival1)
 unique(df_gc$rival2)
 
-### 3.2. Persona (homicidios + heridxs)-----------------------------------------
+### 3.4. Persona (homicidios + heridxs)-----------------------------------------
 # homicidios 
 df_phcolon <- df_gc %>% 
 mutate(
@@ -332,7 +353,7 @@ v_menor <- c("menor de edad", "un menor de edad", "2 menor de edad",
              " 2 menor de edad", "menor de edad", " 1 menor de edad",
              "una menor de edad", "dos menores")
 
-v_moto <- c("motociclista", "motociclistas", "mototaxista")
+v_moto <- c("motociclista", "motociclistas", "mototaxista", "motocilista")
 
 v_pepenador <- c("pepenador")
 
@@ -497,7 +518,7 @@ unique(df_p$homic_clasif2)
 unique(df_p$herido_clasif1)
 unique(df_p$herido_clasif2)
 
-### 3.3. Cuerpos----------------------------------------------------------------
+### 3.5. Cuerpos----------------------------------------------------------------
 
 # separar valores con más opciones
 df_semicolon0 <- df_p %>% 
@@ -580,7 +601,7 @@ df_c <- df_c %>%
 unique(df_c$cuerpo_modo1)
 unique(df_c$cuerpo_modo2)
 
-### 3.4. Cuerpos localizado-----------------------------------------------------
+### 3.6. Cuerpos localizado-----------------------------------------------------
 
 unique(df_c$cuerpos_lugar1)
 
@@ -766,7 +787,7 @@ df_c <- df_c %>%
 unique(df_c$cuerpo_lugar1)
 unique(df_c$cuerpo_lugar2)
 
-### 3.5. Ataque-----------------------------------------------------------------
+### 3.7. Ataque-----------------------------------------------------------------
 # separar valores  
 df_semicolon2 <- df_c %>% 
   mutate(
@@ -866,7 +887,12 @@ unique(df_ata$ataque1)
 unique(df_ata$ataque2)
 unique(df_ata$ataque3)
 
-### 3.6. Lugar de ataque--------------------------------------------------------
+# Corrección de valores duplicados 
+df_ata <- df_ata %>% 
+  mutate(ataque3 =ifelse(ataque3=="agresión con arma de fuego",NA, ataque3))
+
+
+### 3.7. Lugar de ataque--------------------------------------------------------
 
 # separar valores con más opciones
 df_semicolon3 <- df_ata %>% 
@@ -1020,7 +1046,7 @@ df_lu <- df_lu %>%
 unique(df_lu$lugar_ataque1)
 unique(df_lu$lugar_ataque2)
 
-# 3.7 Actividad-----------------------------------------------------------------
+### 3.8 Actividad-----------------------------------------------------------------
 # separar valores con más opciones
 df_actsemicolon <- df_lu %>% 
   mutate(
@@ -1163,9 +1189,12 @@ m_2023 <- df_act %>%
          "lugar_ataque2"          = "lugar_ataque2",
          "politica_de_seguridad"  = "politica_de_seguridad")
 
-# 5. Base limpía----------------------------------------------------------------
+
+# 4. Base limpía----------------------------------------------------------------
 openxlsx::write.xlsx(m_2023, 
                      file = paste_out("m_ene_mar_23_lim.xlsx"))
+
+
 # Fin--------------------------------------------------------------------------- 
 beepr::beep(9)
 
