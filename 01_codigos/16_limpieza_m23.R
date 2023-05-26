@@ -6,7 +6,7 @@
 # Correo:                     alejandro.pocoroba@cide.edu
 #                             erick.morales@cide.edu                                
 # Fecha de creación:          01 de mayo de 2023
-# Última actualización:       17 de mayo de 2023
+# Última actualización:       24 de mayo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión enero-marzo 2023
@@ -47,10 +47,11 @@ df_$mes <- format(df_$"x1_2_1_fecha_publicacion", "%m")
 df_$anio <- format(df_$"x1_2_1_fecha_publicacion", "%Y")
 
 # Estado y municipio según su clave de Inegi 
-df_ <- separate(df_, "x1_3_2_estado", c("estado", "clave"), sep = "-")
-df_ <- separate(df_, "x1_3_3_municipio", c("municipio", "claveEdo", "clavemun"), sep = "-")
-df_ <- subset(df_, select = -c(clave))
-df_$clavefinal <- paste0(df_$claveEdo, df_$clavemun) 
+df_ <- df_ %>% 
+  mutate(
+    claveEdo = str_sub(x1_3_3_municipio, -6, -5), 
+    clavemun = str_sub(x1_3_3_municipio, -3, -1),
+    clavefinal = str_remove_all(str_sub(x1_3_3_municipio, -6, -1), "[:punct:]"))
 
 # Orden y renombrar las variables 
 df_1 <- df_ %>%
@@ -63,8 +64,8 @@ df_1 <- df_ %>%
          "titulo_de_la_nota"      = "x1_2_3_titulo_nota",
          "nombre_de_la_fuente"    = "x1_2_4_fuente",
          "enlace_otras_notas"     = "x1_2_5_enlaces_duplicados",
-         "Estado"                 = "estado",
-         "Municipio"              = "municipio",
+         "Estado"                 = "x1_3_2_estado",
+         "Municipio"              = "x1_3_3_municipio",
          "CVEGEO_ent"             = "claveEdo",
          "CVEGEO_mun"             = "clavemun",
          "CVEGEO"                 = "clavefinal",
@@ -107,9 +108,6 @@ df_1$nombre_de_la_fuente <- chartr(paste(origen, collapse = ""),
 # Quitar articulos que se repiten
 df_1$nombre_de_la_fuente <- gsub("^el\\s+", "", df_1$nombre_de_la_fuente, 
                                  ignore.case = TRUE)
-# Reemplazar mayusculas
-df_1[] <- lapply(df_1, function(x) if (is.character(x)) tolower(x) else x)
-
 
 ### 3.2 Narcomensajes, Cuerpos y Seg--------------------------------------------
 # Cambiar FALSE/TRUE por 0 y 1
@@ -337,7 +335,7 @@ v_fseguridad <- c(" Policía Penitenciaria", "comandante de policía municipal",
                   "agente de la FGE", "autoridad policial",
                   "guardia nacional", "dos policías", "agente", "semar", 
                   "agentes de tránsito", " exagente de la FGE",
-                  " Guardia Nacional")
+                  " Guardia Nacional", "un militar", " un militar")
 
 v_fpublico <- c("comisariado", "comisariado ejidal", 
                 "comisario suplente de la comunidad", "delegado", 
@@ -715,7 +713,7 @@ v_agua <- c("drenaje", "canal de aguas negras", "cisterna", "a orilla de un río
             "A orillas de un río", "deposito de agua", "laguna", "orilla de río",
             "mar", "arroyo", "Dren", "canal de riego", "Canal", "Canal de aguas negras",
             "aguas negras", "planta tratadora de agua", "alcantarilla", "Laguna",
-            "fondo de un pozo", "noria", "manglar")
+            "fondo de un pozo", "noria", "manglar", "pozo de agua", " pozo de agua")
 
 v_otro1 <- c("propiedad privada", "Rancho", "obra en construcción", "Obra negra",
              "construcción", "cuerpo de agua")
@@ -929,8 +927,8 @@ v_banco2 <- c("banco", "cajero")
 
 v_barbe2 <- c("barbería")
 
-v_calle2 <- c("calle", "camino", "camino de terracería", " calle", 
-             "17 calle Poniente y Venustiano Carranza de la colonia 1 de Mayo, a unos 800 metros de la base cangrejo de la Secretaría de Seguridad Pública Municipal.")
+v_calle2 <- c("calle", "camino", "camino de terracería", " calle")
+             
 
 v_campo2 <- c("campo de fútbol", "canchas de fútbol", "Unidad deportiva")
 
@@ -968,7 +966,8 @@ v_entretenimiento2 <- c("carrera de caballos", "casino", "local de maquinitas", 
                        "negocio de maquinitas", "palenque", "playa", "Rodeo", "jaripeo", "plaza principal", "plaza",
                        "plaza comercial")
 
-v_meca2 <- c("autolavado", "refaccionaria", "taller mecánico", "taller de motos", "taller mecánico", " refaccionaria")
+v_meca2 <- c("autolavado", "refaccionaria", "taller mecánico", 
+             "taller de motos", "taller mecánico", " refaccionaria", "vulcanizadora")
 
 v_taxi2 <- c("Central camionera", "transporte público", " taxi", " taller mecánico")
 
@@ -983,6 +982,7 @@ v_alcohol2 <- c("bar", "bar/pulquería", "Cantina", "comercio", "depósito de ce
 v_consumo2 <- c("albergue", "anexo", "campo de cultivo", 
                "centro de rehabilitación", "punto de venta de droga", " picadero",
                "picadero", "centro rehabilitación")
+
 
 # Limpiar nombres 
 df_lu <- df_lu %>% 
@@ -1188,6 +1188,18 @@ m_2023 <- df_act %>%
          "lugar_ataque1"          = "lugar_ataque1",
          "lugar_ataque2"          = "lugar_ataque2",
          "politica_de_seguridad"  = "politica_de_seguridad")
+
+# Detalles
+# Reemplazar mayusculas
+m_2023 <- m_2023 %>% 
+  mutate_at(.vars = c("nombre_de_la_fuente", 
+                      "actividad_grupo1", "actividad_grupo2",
+                      "contenido_narcomensaje", "homic_clasif1",
+                      "homic_clasif2", "cuerpo_modo1", "cuerpo_modo2",
+                      "cuerpo_lugar1", "cuerpo_lugar2", "herido_clasif1",
+                      "herido_clasif2", "ataque1", "ataque2", "ataque3",
+                      "lugar_ataque1", "lugar_ataque2"), 
+            .funs = ~str_to_lower(.))
 
 
 # 4. Base limpía----------------------------------------------------------------
