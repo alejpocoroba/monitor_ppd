@@ -6,7 +6,7 @@
 # Correo:                     alejandro.pocoroba@cide.edu
 #                             erick.morales@cide.edu                                
 # Fecha de creación:          01 de mayo de 2023
-# Última actualización:       24 de mayo de 2023
+# Última actualización:       26 de mayo de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión enero-marzo 2023
