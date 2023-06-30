@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       01 de junio de 2023
+# Última actualización:       29 de junio de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2023
@@ -19,7 +19,7 @@ options(dplyr.summarise.inform = FALSE)
 # Librerías 
 require(pacman)
 p_load(
-  readxl, tidyverse, dplyr, srvyr, zoo, ggtext, beepr)
+  readxl, tidyverse, dplyr, srvyr, zoo, ggtext, beepr, lubridate)
 
 # Limpiar espacio de trabajo 
 rm(list=ls())
@@ -34,10 +34,13 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 
 # junio 01 de 2023
 c <- read_xlsx(paste_inp("monitor_abril_2023.xlsx"))
-b <- read_xlsx(paste_inp("monitor_mayo_junio_2023.xlsx"))
+b <- read_xlsx(paste_inp("monitor_junio_2023.xlsx"))
+d <- read_xlsx(paste_inp("monitor_marzo_2023.xlsx"))
 
 # Se unen bases 
-a <- c %>% bind_rows(b)
+a <- c %>% 
+  bind_rows(b) %>% 
+  bind_rows(d)
 
 # 2. Procesamiento 
 
@@ -55,7 +58,7 @@ df_ <- a %>%
 # 3. Cifras de captura ---------------------------------------------------
 ## Periodo junio a noviembre----
 # Total de observaciones 
-paste0("Número total de observaciones al 01 de junio 2023: ", dim(df_)[1])
+paste0("Número total de observaciones al 29 de junio 2023: ", dim(df_)[1])
 
 # Total de obsveraciones por mes
 table(df_$mes)
@@ -106,6 +109,9 @@ df_data1 <- df_ %>%
   # Agregar variable de mes para facilitar filtros de fechas 
   mutate(mes = lubridate::month(publicacion, label = TRUE))
 
+# Arreglo en publicación
+df_data1$publicacion <- gsub(x = df_data1$publicacion, pattern = "00:00:00", replacement = "", fixed = T)
+df_data1$publicacion <- as.Date(df_data1$publicacion)
 
 # Por estado, publicación y responsable
 ggplot(
@@ -123,7 +129,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 01/06/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 29/06/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -136,10 +142,102 @@ ggplot(
 ggsave(file = paste_fig("01_captura_general_2023.png"), 
        width = 10, height = 6)
 
+# Por mes 
+# Abril
+ggplot(
+  # Datos
+  df_data1 %>% filter(mes == "abr"),  
+  # Coordenadas 
+  aes(x = publicacion, y = total, fill = responsable)) +
+  facet_wrap(~estado, ncol = 8) +
+  # Geoms
+  geom_col() +
+  # Etiquetas
+  labs(
+    title = "Total de observaciones capturadas para el Monitor PPD en abril 2023", 
+    subtitle = "Por estado, fecha de publicación y persona responsable", 
+    fill = "Persona\nresponsable\n", 
+    x = "Fecha de publicación", 
+    y = "\nNúmero de observaciones capturadas", 
+    caption = paste0("Fuente: Monitor-PPD al 29/06/23 ")
+  ) +
+  # Escalas
+  scale_fill_brewer(palette="Set2") +
+  # Temas 
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    axis.text.x = element_text(angle = 30))
+
+ggsave(file = paste_fig("02_captura_04_2023.png"), 
+       width = 10, height = 6)
+
+# Mayo
+ggplot(
+  # Datos
+  df_data1 %>% filter(mes == "may"),  
+  # Coordenadas 
+  aes(x = publicacion, y = total, fill = responsable)) +
+  facet_wrap(~estado, ncol = 8) +
+  # Geoms
+  geom_col() +
+  # Etiquetas
+  labs(
+    title = "Total de observaciones capturadas para el Monitor PPD en mayo 2023", 
+    subtitle = "Por estado, fecha de publicación y persona responsable", 
+    fill = "Persona\nresponsable\n", 
+    x = "Fecha de publicación", 
+    y = "\nNúmero de observaciones capturadas", 
+    caption = paste0("Fuente: Monitor-PPD al 29/06/23 ")
+  ) +
+  # Escalas
+  scale_fill_brewer(palette="Set2") +
+  # Temas 
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    axis.text.x = element_text(angle = 30))
+
+ggsave(file = paste_fig("03_captura_05_2023.png"), 
+       width = 10, height = 6)
+
+
+# Junio
+ggplot(
+  # Datos
+  df_data1 %>% filter(mes == "jun"),  
+  # Coordenadas 
+  aes(x = publicacion, y = total, fill = responsable)) +
+  facet_wrap(~estado, ncol = 8) +
+  # Geoms
+  geom_col() +
+  # Etiquetas
+  labs(
+    title = "Total de observaciones capturadas para el Monitor PPD en junio 2023", 
+    subtitle = "Por estado, fecha de publicación y persona responsable", 
+    fill = "Persona\nresponsable\n", 
+    x = "Fecha de publicación", 
+    y = "\nNúmero de observaciones capturadas", 
+    caption = paste0("Fuente: Monitor-PPD al 29/06/23 ")
+  ) +
+  # Escalas
+  scale_fill_brewer(palette="Set2") +
+  # Temas 
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    axis.text.x = element_text(angle = 30))
+
+ggsave(file = paste_fig("04_captura_06_2023.png"), 
+       width = 10, height = 6)
+
+
+# No sirve el loop :( 
+
 # Meses - 2023
 ## Captura desagregado----
 # Procesamiento 
-for(i in 4:5) {
+for(i in 4:6) {
   df_data <- df_ %>% 
     filter(mes == i) %>% 
     group_by(publicacion, estado, responsable) %>% 
@@ -147,7 +245,7 @@ for(i in 4:5) {
       total = n()
     ) %>% 
     filter(!is.na(estado)) %>% 
-    drop_na()
+    drop_na() 
   
   # Por día, mes, estado y responsable
   ggplot(
@@ -165,7 +263,7 @@ for(i in 4:5) {
       fill = "Persona\nresponsable\n", 
       x = "Fecha de publicación", 
       y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 01/06/23 ")
+      caption = paste0("Fuente: Monitor-PPD al 29/06/23 ")
     ) +
     # Escalas
     scale_fill_brewer(palette="Set2") +
