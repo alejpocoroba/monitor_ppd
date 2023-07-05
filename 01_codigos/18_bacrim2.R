@@ -31,7 +31,7 @@ paste_fig <- function(x){paste0("04_figuras/"      , x)}
 # 1. Cargar datos --------------------------------------------------------------
 
 # bacrim aliados y rivales 
-crudo <- read_xlsx(paste_inp("bacrim_redes.24.06.23.xlsx"))
+crudo <- read_xlsx(paste_inp("bacrim_redes30.06.23.xlsx"))
 
 # 2. Procesamiento--------------------------------------------------------------
 # 2.- Comparar los grupos ya identificados con aliados-rivales
