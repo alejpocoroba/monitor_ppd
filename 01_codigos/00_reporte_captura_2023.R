@@ -5,7 +5,7 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       04 de julio de 2023
+# Última actualización:       14 de julio de 2023
 #------------------------------------------------------------------------------#
 
 # Fuente: Monitor PPD versión 2023
@@ -58,7 +58,7 @@ df_ <- a %>%
 # 3. Cifras de captura ---------------------------------------------------
 ## Periodo junio a noviembre----
 # Total de observaciones 
-paste0("Número total de observaciones al 04 de julio 2023: ", dim(df_)[1])
+paste0("Número total de observaciones al 14 de julio 2023: ", dim(df_)[1])
 
 # Total de obsveraciones por mes
 table(df_$mes)
@@ -129,7 +129,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 04/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -159,7 +159,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 04/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -188,7 +188,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al04/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -218,7 +218,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 04/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
