@@ -5,10 +5,10 @@
 # Encargado:                  Alejandro Pocoroba
 # Correo:                     alejandro.pocoroba@cide.edu
 # Fecha de creación:          19 de enero de 2023
-# Última actualización:       14 de julio de 2023
+# Última actualización:       01 de agosto de 2023
 #------------------------------------------------------------------------------#
 
-# Fuente: Monitor PPD versión 2023
+# Fuente: Monitor PPD versión abril - junio 2023
 
 # 0. Configuración inicial -----------------------------------------------------
 
@@ -58,7 +58,7 @@ df_ <- a %>%
 # 3. Cifras de captura ---------------------------------------------------
 ## Periodo junio a noviembre----
 # Total de observaciones 
-paste0("Número total de observaciones al 14 de julio 2023: ", dim(df_)[1])
+paste0("Número total de observaciones al 01 de agosto 2023: ", dim(df_)[1])
 
 # Total de obsveraciones por mes
 table(df_$mes)
@@ -129,7 +129,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 01/08/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -159,7 +159,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 01/08/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -188,7 +188,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 01/08/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -218,7 +218,7 @@ ggplot(
     fill = "Persona\nresponsable\n", 
     x = "Fecha de publicación", 
     y = "\nNúmero de observaciones capturadas", 
-    caption = paste0("Fuente: Monitor-PPD al 14/07/23 ")
+    caption = paste0("Fuente: Monitor-PPD al 01/08/23 ")
   ) +
   # Escalas
   scale_fill_brewer(palette="Set2") +
@@ -230,53 +230,6 @@ ggplot(
 
 ggsave(file = paste_fig("04_captura_06_2023.png"), 
        width = 10, height = 6)
-
-
-# No sirve el loop :( 
-
-# Meses - 2023
-## Captura desagregado----
-# Procesamiento 
-for(i in 4:6) {
-  df_data <- df_ %>% 
-    filter(mes == i) %>% 
-    group_by(publicacion, estado, responsable) %>% 
-    summarise(
-      total = n()
-    ) %>% 
-    filter(!is.na(estado)) %>% 
-    drop_na() 
-  
-  # Por día, mes, estado y responsable
-  ggplot(
-    # Datos
-    df_data, 
-    # Coordenadas 
-    aes(x = publicacion, y = total, fill = responsable)) +
-    facet_wrap(~estado, ncol = 8) +
-    # Geoms
-    geom_col() +
-    # Etiquetas
-    labs(
-      title = paste0("Total de observaciones capturadas por mes ", i), 
-      subtitle = "Por estado, fecha de publicación y persona responsable", 
-      fill = "Persona\nresponsable\n", 
-      x = "Fecha de publicación", 
-      y = "\nNúmero de observaciones capturadas", 
-      caption = paste0("Fuente: Monitor-PPD al 29/06/23 ")
-    ) +
-    # Escalas
-    scale_fill_brewer(palette="Set2") +
-    # Tema
-    theme_bw() +
-    theme(
-      legend.position = "top", 
-      axis.text.x = element_text(angle = 30))
-  
-  ggsave(file = paste_fig(paste0("02_captura_estado_fecha_persona_", i, ".png")), 
-         width = 10, height = 6)
-  
-}
 
 
 # Fin 
