@@ -204,7 +204,7 @@ v_narcomensaje    <- c("narcomensajes", "narcomensaje", "mensaje mediante grabac
                        "narco manta \r\n", "arias cartulinas con mensajes amenazantes.", 
                        "narcomensaje\r\n", "narcomensaje \r\n",
                        "narcomanta \r\n", "cuerpo  con mensaje", "mensaje",
-                       "mensaje mediante grabacion")
+                       "mensaje mediante grabacion", "narco mensaje")
 
 v_amaneza          <- c("amenazas")
 
@@ -271,11 +271,12 @@ df_crudo_li <- df_crudo %>%
             .funs = ~nombres_otra(.))
 
 # Valores similares en columnas distintas en la misma observacion
-
+df_crudo_li2 <- df_crudo_li %>% 
+  mutate(otra2 = if_else(otra2 == otra1, NA_character_, otra2))
 
 # Detalles
 # ID y orden
-df_limpio <- df_crudo_li %>% 
+df_limpio <- df_crudo_li2 %>% 
   mutate(id = 1:length(df_crudo_li$mes)) %>% 
   select(id, estado, claveEdo, fecha,  mes, anio, titulo_nota, enlace, enlace_relacionado,
         violencia_armada_fuego, homicidios, heridxs, genero, presencia_criminal,
