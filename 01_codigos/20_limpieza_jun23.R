@@ -287,37 +287,3 @@ df_limpio <- df_crudo_li2 %>%
 openxlsx::write.xlsx(df_limpio, 
                      file = paste_out("monitor.abril_junio2023.xlsx"))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
