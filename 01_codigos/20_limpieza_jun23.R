@@ -281,11 +281,45 @@ df_limpio <- df_crudo_li2 %>%
   select(id, estado, claveEdo, fecha,  mes, anio, titulo_nota, enlace, enlace_relacionado,
         violencia_armada_fuego, homicidios, heridxs, genero, presencia_criminal,
          actividades_delictivas, detenciones, acciones_gubernamentales, politica_seguridad,
-         otra1, otra2, observaciones)
+         otra1, otra2) %>% 
+  rename("heridos_as" = "heridxs") %>% 
+  filter(mes != "07")
+# se deja fuera observaciones por indicaciones de LA 08/08/23
 
 # 3. Base limpia----------------------------------------------------------------
-openxlsx::write.xlsx(df_limpio, 
-                     file = paste_out("monitor.abril_junio2023.xlsx"))
+# Microdatos:
+# openxlsx::write.xlsx(df_limpio, 
+#                     file = paste_out("monitor.abril_junio2023.xlsx"))
 
+# 4. Base panel
+df_limpio$violencia_armada_fuego   <- as.numeric(df_limpio$violencia_armada_fuego)
+df_limpio$homicidios               <- as.numeric(df_limpio$homicidios)
+df_limpio$heridos_as               <- as.numeric(df_limpio$heridos_as)
+df_limpio$genero                   <- as.numeric(df_limpio$genero)
+df_limpio$presencia_criminal       <- as.numeric(df_limpio$presencia_criminal)
+df_limpio$actividades_delictivas   <- as.numeric(df_limpio$actividades_delictivas)
+df_limpio$detenciones              <- as.numeric(df_limpio$detenciones)
+df_limpio$acciones_gubernamentales <- as.numeric(df_limpio$acciones_gubernamentales)
+df_limpio$politica_seguridad       <- as.numeric(df_limpio$politica_seguridad)
 
+# por mes 
+df_dp_m <- df_limpio %>% 
+  group_by(mes, estado, claveEdo) %>% 
+  summarise(violencia_armada_fuego   = sum(violencia_armada_fuego, na.rm = TRUE),
+            homicidios               = sum(homicidios, na.rm = TRUE),
+            heridos_as               = sum(heridos_as, na.rm = TRUE),
+            genero                   = sum(genero, na.rm = TRUE),
+            presencia_criminal       = sum(presencia_criminal, na.rm = TRUE),
+            actividades_delictivas   = sum(actividades_delictivas, na.rm = TRUE),
+            detenciones              = sum(detenciones, na.rm = TRUE),
+            acciones_gubernamentales = sum(acciones_gubernamentales, na.rm = TRUE),
+            politica_seguridad       = sum(politica_seguridad, na.rm = TRUE)) 
 
+# de largo a ancho
+df_dp_m2 <- df_dp_m %>%
+  pivot_longer(cols = -c(mes,estado, claveEdo), names_to = "tipo", values_to = "total") %>% 
+  pivot_wider(names_from = c(tipo, mes), values_from = total) 
+
+# 5. Base limpia----------------------------------------------------------------
+# openxlsx::write.xlsx(df_dp_m2, 
+#                     file = paste_out("ppd.monitor.abril_junio2023.xlsx"))
